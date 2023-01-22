@@ -1,20 +1,46 @@
-import { App, TFolder, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, TFolder, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile } from 'obsidian';
 
 // Remember to rename these classes and interfaces!
 
 interface SettingsPNO {
 	projectFolderPath: string;
-	pickerMode: string;
+	pickerIndex: number;
+}
+
+type NotePicker = {
+	name: string;
+	description: String;
+	pick(notes: TFile[]): TFile;
 }
 
 const DEFAULT_SETTINGS: SettingsPNO = {
 	projectFolderPath: '/',
-	pickerMode: "flat",
+	pickerIndex: 0,
 }
+
+
+let flatPicker: NotePicker = {
+	name: "flat",
+	description:"Display all project notes in the root project folder as \'pathToProjectFolder/projectFolderName\'",
+	pick:(notes:TFile[]):TFile=>{
+		return notes[0];
+	}
+}
+
+let recursivePicker: NotePicker = {
+	name: "recursive",
+	description:"Chose a top level folder in the root project folder and then between any subfolders (if necessary)",
+	pick:(notes:TFile[]):TFile=>{
+		return notes[0];
+	}
+}
+
 
 export default class MyPlugin extends Plugin {
 	settings: SettingsPNO;
 
+	pickers: NotePicker[] = [recursivePicker, flatPicker];
+	
 	async onload() {
 		await this.loadSettings();
 
@@ -70,12 +96,12 @@ class SampleModal extends Modal {
 	}
 
 	onOpen() {
-		const {contentEl} = this;
+		const { contentEl } = this;
 		contentEl.setText('Woah! My plugin!');
 	}
 
 	onClose() {
-		const {contentEl} = this;
+		const { contentEl } = this;
 		contentEl.empty();
 	}
 }
@@ -89,11 +115,11 @@ class PNOSettingTab extends PluginSettingTab {
 	}
 
 	display(): void {
-		const {containerEl} = this;
+		const { containerEl } = this;
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', {text: 'Settings for Project Note Opener.'});
+		containerEl.createEl('h2', { text: 'Settings for Project Note Opener.' });
 
 		new Setting(containerEl)
 			.setName('Root Project Folder Path')
@@ -103,7 +129,7 @@ class PNOSettingTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.projectFolderPath)
 				.onChange(async (value) => {
 					let folder = this.app.vault.getAbstractFileByPath(value);
-					if ( folder && folder instanceof TFolder ){
+					if (folder && folder instanceof TFolder) {
 						console.log('New Project Folder Path: ' + value);
 						this.plugin.settings.projectFolderPath = value;
 						text.inputEl.removeClasses(["opn_error"])
@@ -111,21 +137,28 @@ class PNOSettingTab extends PluginSettingTab {
 					} else {
 						text.inputEl.addClasses(["opn_error"])
 					}
-					
+
 					await this.plugin.saveSettings();
 				}))
 
 		new Setting(containerEl)
 		.setName("Project picker mode")
-		.setDesc('Flat: Display all project notes in the root project folder as \'pathToProjectFolder/projectFolderName\'Folder: Chose a top level folder in the root project folder and then between any subfolders (if necessary)')
-		.addDropdown(dropdown => dropdown
-			.addOption("flat","flat")
-			.addOption("folder","folder")
-			.setValue(this.plugin.settings.pickerMode)
-			.onChange(async (value) => {
-				console.log("New picker mode", value);
-				this.plugin.settings.pickerMode = value;
+		.setDesc("Picker types: "+this.plugin.pickers.map(p => `${p.name}: ${p.description}`).join(", "))
+		.addDropdown(dropdown => {
+			// add populate dropdown options
+			this.plugin.pickers.forEach((picker,index) => {
+				dropdown.addOption(index.toString(),picker.name)
+			});
+
+			// select current picker
+			dropdown.setValue(this.plugin.settings.pickerIndex.toString())
+
+			// change selected picker on change
+			dropdown.onChange(async (pickerIndexString) => {
+				let chosenPickerIndex: number = parseInt(pickerIndexString)
+				console.log("New picker mode", this.plugin.pickers[chosenPickerIndex].name);
+				this.plugin.settings.pickerIndex = chosenPickerIndex;
 			})
-		);
+		});
 	}
 }
