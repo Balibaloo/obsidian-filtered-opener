@@ -21,16 +21,16 @@ const DEFAULT_SETTINGS: SettingsPNO = {
 
 let flatPicker: NotePicker = {
 	name: "flat",
-	description:"Display all project notes in the root project folder as \'pathToProjectFolder/projectFolderName\'",
-	pick:(notes:TFile[]):TFile=>{
+	description: "Display all project notes in the root project folder as \'pathToProjectFolder/projectFolderName\'",
+	pick: (notes: TFile[]): TFile => {
 		return notes[0];
 	}
 }
 
 let recursivePicker: NotePicker = {
 	name: "recursive",
-	description:"Chose a top level folder in the root project folder and then between any subfolders (if necessary)",
-	pick:(notes:TFile[]):TFile=>{
+	description: "Chose a top level folder in the root project folder and then between any subfolders (if necessary)",
+	pick: (notes: TFile[]): TFile => {
 		return notes[0];
 	}
 }
@@ -40,7 +40,7 @@ export default class MyPlugin extends Plugin {
 	settings: SettingsPNO;
 
 	pickers: NotePicker[] = [recursivePicker, flatPicker];
-	
+
 	async onload() {
 		await this.loadSettings();
 
@@ -142,23 +142,23 @@ class PNOSettingTab extends PluginSettingTab {
 				}))
 
 		new Setting(containerEl)
-		.setName("Project picker mode")
-		.setDesc("Picker types: "+this.plugin.pickers.map(p => `${p.name}: ${p.description}`).join(", "))
-		.addDropdown(dropdown => {
-			// add populate dropdown options
-			this.plugin.pickers.forEach((picker,index) => {
-				dropdown.addOption(index.toString(),picker.name)
+			.setName("Project picker mode")
+			.setDesc("Picker types: " + this.plugin.pickers.map(p => `${p.name}: ${p.description}`).join(", "))
+			.addDropdown(dropdown => {
+				// add populate dropdown options
+				this.plugin.pickers.forEach((picker, index) => {
+					dropdown.addOption(index.toString(), picker.name)
+				});
+
+				// select current picker
+				dropdown.setValue(this.plugin.settings.pickerIndex.toString())
+
+				// change selected picker on change
+				dropdown.onChange(async (pickerIndexString) => {
+					let chosenPickerIndex: number = parseInt(pickerIndexString)
+					console.log("New picker mode", this.plugin.pickers[chosenPickerIndex].name);
+					this.plugin.settings.pickerIndex = chosenPickerIndex;
+				})
 			});
-
-			// select current picker
-			dropdown.setValue(this.plugin.settings.pickerIndex.toString())
-
-			// change selected picker on change
-			dropdown.onChange(async (pickerIndexString) => {
-				let chosenPickerIndex: number = parseInt(pickerIndexString)
-				console.log("New picker mode", this.plugin.pickers[chosenPickerIndex].name);
-				this.plugin.settings.pickerIndex = chosenPickerIndex;
-			})
-		});
 	}
 }
