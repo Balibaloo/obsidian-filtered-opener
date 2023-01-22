@@ -1,7 +1,7 @@
 {
 	"id": "obsidian-project-note-opener",
 	"name": "Project Note Opener",
-	"version": "1.0.0",
+	"version": "0.0.1",
 	"minAppVersion": "0.15.0",
 	"description": "This is a simple plugin to chose and open a project note.",
 	"author": "Roman Kubiv",
