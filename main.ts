@@ -39,7 +39,7 @@ let recursivePicker: NotePicker = {
 export default class MyPlugin extends Plugin {
 	settings: SettingsPNO;
 
-	pickers: NotePicker[] = [recursivePicker, flatPicker];
+	pickers: NotePicker[] = [flatPicker, recursivePicker];
 
 	async onload() {
 		await this.loadSettings();
