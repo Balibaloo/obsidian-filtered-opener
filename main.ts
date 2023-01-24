@@ -1,4 +1,4 @@
-import { App, TFolder, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile } from 'obsidian';
+import { App, TFolder, FuzzySuggestModal , Notice, Plugin, PluginSettingTab, Setting, TFile } from 'obsidian';
 
 // Remember to rename these classes and interfaces!
 
@@ -10,7 +10,7 @@ interface SettingsPNO {
 type NotePicker = {
 	name: string;
 	description: String;
-	pick(notes: TFile[]): TFile;
+	pick(app:App, notes: TFile[], callback:(file:TFile)=>void): void;
 }
 
 const DEFAULT_SETTINGS: SettingsPNO = {
@@ -22,16 +22,16 @@ const DEFAULT_SETTINGS: SettingsPNO = {
 let flatPicker: NotePicker = {
 	name: "flat",
 	description: "Display all project notes in the root project folder as \'pathToProjectFolder/projectFolderName\'",
-	pick: (notes: TFile[]): TFile => {
-		return notes[0];
+	pick: (app:App, notes: TFile[], callback:(file:TFile)=>void): void => {
+		new FlatSuggestModal(app, notes,callback).open();
 	}
 }
 
 let recursivePicker: NotePicker = {
 	name: "recursive",
 	description: "Chose a top level folder in the root project folder and then between any subfolders (if necessary)",
-	pick: (notes: TFile[]): TFile => {
-		return notes[0];
+	pick: (app:App, notes: TFile[],callback:(file:TFile)=>void): void => {
+		callback(notes[0]);
 	}
 }
 
@@ -49,7 +49,15 @@ export default class MyPlugin extends Plugin {
 			id: 'open-project-note-picker',
 			name: 'Open Project Note Picker',
 			callback: () => {
-				new ProjectNoteOpenerModal(this.app).open();
+				let projectNotes: TFile[] = this.app.vault.getFiles()
+					.filter(f=>f.name.startsWith("🏗")
+					&& !f.path.startsWith("🗻"));
+				
+				this.pickers[this.settings.pickerIndex].pick(this.app, projectNotes,
+					file=>{
+						this.app.workspace.getLeaf(true).openFile(file);
+				});
+				
 			}
 		});
 
@@ -70,19 +78,26 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
-class ProjectNoteOpenerModal extends Modal {
-	constructor(app: App) {
+class FlatSuggestModal extends FuzzySuggestModal<TFile> {
+	constructor(app: App, items:TFile[], callback:(item:TFile)=>void) {
 		super(app);
+		this.items = items;
+		this.callback=callback;
+	}
+	
+	items:TFile[];
+	callback:(item:TFile)=>void;
+
+	getItems(): TFile[] {
+		return this.items;
 	}
 
-	onOpen() {
-		const { contentEl } = this;
-		contentEl.setText('Hello, welcome to the project note opener');
+	getItemText(item: TFile): string {
+		let splitPath = item.path.split(/[\\/]/g);
+		return `${splitPath[1]}/ ${splitPath.at(-2)?.replace(/\.md$/gi,'')}`;
 	}
-
-	onClose() {
-		const { contentEl } = this;
-		contentEl.empty();
+	onChooseItem(item: TFile, evt: MouseEvent | KeyboardEvent): void {
+		this.callback(item);
 	}
 }
 
