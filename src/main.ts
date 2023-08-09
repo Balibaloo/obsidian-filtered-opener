@@ -17,6 +17,14 @@ export default class PnOPlugin extends Plugin {
 			callback: () => {
 				const filteredFiles: TFile[] = filterFileList(this.settings, this.app.vault.getFiles());
 				
+				const activeFileSiblings = this.app.workspace.getActiveFile()?.parent.children;
+				if (activeFileSiblings && activeFileSiblings[0]){
+					const activeProjectNotes = filterFileList( this.settings, activeFileSiblings.filter(f => f instanceof TFile) as TFile[]);
+					
+					if (activeProjectNotes[0])
+						filteredFiles.unshift(activeProjectNotes[0]);
+				}
+				
 				this.pickers[this.settings.pickerIndex].pick(this.app, filteredFiles,
 					file=>{
 						this.app.workspace.getLeaf(true).openFile(file);
