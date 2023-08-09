@@ -15,11 +15,9 @@ export default class PnOPlugin extends Plugin {
 			id: 'open-project-note-picker',
 			name: 'Open Project Note Picker',
 			callback: () => {
-				let projectNotes: TFile[] = this.app.vault.getFiles()
-					.filter(f=>f.name.startsWith("🏗")
-					&& !f.path.startsWith("🗻"));
+				const filteredFiles: TFile[] = filterFileList(this.settings, this.app.vault.getFiles());
 				
-				this.pickers[this.settings.pickerIndex].pick(this.app, projectNotes,
+				this.pickers[this.settings.pickerIndex].pick(this.app, filteredFiles,
 					file=>{
 						this.app.workspace.getLeaf(true).openFile(file);
 				});
@@ -42,4 +40,40 @@ export default class PnOPlugin extends Plugin {
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
+}
+
+function filterFileList(settings:SettingsPNO, list:TFile[]):TFile[]{
+	if (settings.includePNPath){
+		if (settings.includePNPathIsRegex){
+			list = list.filter(f => f.path.match(settings.includePNPath))
+		} else {
+			list = list.filter(f => f.path.includes(settings.includePNPath))
+		}
+	}
+	
+	if (settings.includePNFileName){
+		if (settings.includePNFileNameIsRegex){
+			list = list.filter(f => f.name.match(settings.includePNFileName))
+		} else {
+			list = list.filter(f => f.name.includes(settings.includePNFileName))
+		}
+	}
+
+	if (settings.excludePNPath){
+		if (settings.excludePNPathIsRegex){
+			list = list.filter(f => !f.path.match(settings.excludePNPath))
+		} else {
+			list = list.filter(f => !f.path.includes(settings.excludePNPath))
+		}
+	}
+	
+	if (settings.excludePNFileName){
+		if (settings.excludePNFileNameIsRegex){
+			list = list.filter(f => !f.name.match(settings.excludePNFileName))
+		} else {
+			list = list.filter(f => !f.name.includes(settings.excludePNFileName))
+		}
+	}
+
+	return list;
 }
