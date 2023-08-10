@@ -89,113 +89,76 @@ export class PNOSettingTab extends PluginSettingTab {
       .setDesc("Toggles enable regex matching")
       .setHeading()
 
-    new Setting(containerEl)
-      .setName("Path includes")
-      .addText(text => {
-        text.setValue(settings.includePNPath)
-          .setPlaceholder(settings.includePNPathIsRegex ? "regex" : "Text includes")
-          .setValue(settings.includePNPath)
-          .onChange(async v => {
-            if (settings.includePNPathIsRegex && v !== "" && !isValidRegex(v)) {
-              text.inputEl.addClasses(["opn_error"]);
-
-            } else {
-              settings.includePNPath = v;
-              text.inputEl.removeClasses(["opn_error"]);
-              new Notice("Saved");
-            }
-            await this.plugin.saveSettings();
-          })
-      })
-      .addToggle(toggle => {
-        toggle.setTooltip("Use Regex expression")
-          .setValue(settings.includePNPathIsRegex)
-          .onChange(async v => {
-            settings.includePNPathIsRegex = v;
-            await this.plugin.saveSettings();
-          }) // todo check text
-      })
-
-    new Setting(containerEl)
+    const fileNameIncludesSetting = new Setting(containerEl)
       .setName("File name includes")
-      .addText(text => {
-        text.setValue(settings.includePNFileName)
-          .setPlaceholder(settings.includePNFileNameIsRegex ? "regex" : "Text includes")
-          .setValue(settings.includePNFileName)
-          .onChange(async v => {
-            if (settings.includePNFileNameIsRegex && v !== "" && !isValidRegex(v)) {
-              text.inputEl.addClasses(["opn_error"]);
+    this.createRegexText(fileNameIncludesSetting, {
+      getValue: () => settings.includePNFileName, 
+      setValue: v => { settings.includePNFileName = v },
+      getIsRegex: () => settings.includePNFileNameIsRegex, 
+      setIsRegex: v => { settings.includePNFileNameIsRegex = v }
+    }
+    )
 
-            } else {
-              settings.includePNFileName = v;
-              text.inputEl.removeClasses(["opn_error"]);
-              new Notice("Saved");
-            }
-            await this.plugin.saveSettings();
-          })
-      })
-      .addToggle(toggle => {
-        toggle.setTooltip("Use Regex expression")
-          .setValue(settings.includePNFileNameIsRegex)
-          .onChange(async v => {
-            settings.includePNFileNameIsRegex = v
-            await this.plugin.saveSettings();}) // todo check text
-      })
-
-    new Setting(containerEl)
-      .setName("Path excludes")
-      .addText(text => {
-        text.setValue(settings.excludePNPath)
-          .setPlaceholder(settings.excludePNPathIsRegex ? "regex" : "Text excludes")
-          .setValue(settings.excludePNPath)
-          .onChange(async v => {
-            if (settings.excludePNPathIsRegex && v !== "" && !isValidRegex(v)) {
-              text.inputEl.addClasses(["opn_error"]);
-
-            } else {
-              settings.excludePNPath = v;
-              text.inputEl.removeClasses(["opn_error"]);
-              await this.plugin.saveSettings();
-              new Notice("Saved");
-            }
-          })
-      })
-      .addToggle(toggle => {
-        toggle.setTooltip("Use Regex expression")
-          .setValue(settings.excludePNPathIsRegex)
-          .onChange(async v => {settings.excludePNPathIsRegex = v;
-            await this.plugin.saveSettings();}) // todo check text
-      })
-
-    new Setting(containerEl)
+    const fileNameExcludesSetting = new Setting(containerEl)
       .setName("File name excludes")
-      .addText(text => {
-        text.setValue(settings.excludePNFileName)
-          .setPlaceholder(settings.excludePNFileNameIsRegex ? "regex" : "Text excludes")
-          .setValue(settings.excludePNFileName)
-          .onChange(async v => {
-            if (settings.excludePNFileNameIsRegex && v !== "" && !isValidRegex(v)) {
-              text.inputEl.addClasses(["opn_error"]);
+    this.createRegexText(fileNameExcludesSetting, {
+      getValue: () => settings.excludePNFileName, 
+      setValue: v => { settings.excludePNFileName = v },
+      getIsRegex: () => settings.excludePNFileNameIsRegex, 
+      setIsRegex: v => { settings.excludePNFileNameIsRegex = v }
+    }
+    )
 
-            } else {
-              settings.excludePNFileName = v;
-              text.inputEl.removeClasses(["opn_error"]);
-              await this.plugin.saveSettings();
-              new Notice("Saved");
-            }
-          })
-      })
+    const pathIncludesSetting = new Setting(containerEl)
+      .setName("Path includes")
+    this.createRegexText(pathIncludesSetting, {
+      getValue: () => settings.includePNPath, 
+      setValue: v => { settings.includePNPath = v },
+      getIsRegex: () => settings.includePNPathIsRegex, 
+      setIsRegex: v => { settings.includePNPathIsRegex = v }
+    }
+    )
+
+    const pathExcludesSetting = new Setting(containerEl)
+      .setName("Path excludes")  
+    this.createRegexText(pathExcludesSetting, {
+      getValue: () => settings.excludePNPath, 
+      setValue: v => { settings.excludePNPath = v },
+      getIsRegex: () => settings.excludePNPathIsRegex, 
+      setIsRegex: v => { settings.excludePNPathIsRegex = v }
+    }
+    )
+  }
+
+  // {value:, isRegex:settings.excludePNFileNameIsRegex}
+  createRegexText(textC: Setting,
+    values: { getValue(): string, setValue(v: string): void, getIsRegex(): boolean, setIsRegex(b: boolean): void }) {
+    textC.addText(text => {
+      text.setValue(values.getValue())
+        .setPlaceholder(values.getIsRegex() ? "regex" : "Text excludes")
+        .setValue(values.getValue())
+        .onChange(async v => {
+          if (values.getIsRegex() && v !== "" && !isValidRegex(v)) {
+            text.inputEl.addClasses(["opn_error"]);
+
+          } else {
+            values.setValue(v);
+            text.inputEl.removeClasses(["opn_error"]);
+            await this.plugin.saveSettings();
+            new Notice("Saved");
+          }
+        })
+    })
       .addToggle(toggle => {
         toggle.setTooltip("Use Regex expression")
-          .setValue(settings.excludePNFileNameIsRegex)
-          .onChange(async v => {
-            settings.excludePNFileNameIsRegex = v;
-            await this.plugin.saveSettings();
-          }) // todo check text
-      })
+        .setValue(values.getIsRegex())
+        .onChange(async v => {
+          values.setIsRegex(v);
+          await this.plugin.saveSettings();
+        }) // todo check text
+    })
   }
 }
-
 
 // https://stackoverflow.com/questions/17250815/how-to-check-if-the-input-string-is-a-valid-regular-expression
 function isValidRegex(s: string) {
