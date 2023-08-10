@@ -1,10 +1,11 @@
 {
-	"id": "obsidian-project-note-opener",
-	"name": "Project Note Opener",
-	"version": "0.0.1",
-	"minAppVersion": "0.15.0",
-	"description": "This is a simple plugin to chose and open a project note.",
-	"author": "Roman Kubiv",
-	"authorUrl": "http://roman.kubiv.com",
-	"isDesktopOnly": false
+  "author": "Roman Kubiv",
+  "minAppVersion": "0.15.0",
+  "name": "Project Note Opener",
+  "version": "0.0.1",
+  "authorUrl": "https://roman.kubiv.com",
+  "fundingUrl": "https://www.buymeacoffee.com/romankubiv",
+  "description": "This is a simple plugin to chose and open a project note.",
+  "id": "obsidian-project-note-opener",
+  "isDesktopOnly": false
 }
