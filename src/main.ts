@@ -1,9 +1,9 @@
 import { Plugin, TFile } from 'obsidian';
-import { DEFAULT_SETTINGS, PNOSettingTab, SettingsPNO } from './settings';
+import { DEFAULT_SETTINGS, FNOSettingTab, SettingsFNO } from './settings';
 import { NotePicker, pickers } from "./pickers"
 
-export default class PnOPlugin extends Plugin {
-	settings: SettingsPNO;
+export default class FnOPlugin extends Plugin {
+	settings: SettingsFNO;
 
 	pickers: NotePicker[] = pickers;
 
@@ -12,8 +12,8 @@ export default class PnOPlugin extends Plugin {
 
 		// add a command to trigger the project note opener
 		this.addCommand({
-			id: 'open-project-note-picker',
-			name: 'Open Project Note Picker',
+			id: 'open-filtered-note-picker',
+			name: 'Open Filtered Note Picker',
 			callback: () => {
 				const filteredFiles: TFile[] = filterFileList(this.settings, this.app.vault.getFiles());
 				
@@ -24,7 +24,7 @@ export default class PnOPlugin extends Plugin {
 					if (activeProjectNotes[0])
 						filteredFiles.unshift(activeProjectNotes[0]);
 				}
-				
+
 				this.pickers[this.settings.pickerIndex].pick(this.app, filteredFiles,
 					file=>{
 						this.app.workspace.getLeaf(true).openFile(file);
@@ -34,7 +34,7 @@ export default class PnOPlugin extends Plugin {
 		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new PNOSettingTab(this.app, this));
+		this.addSettingTab(new FNOSettingTab(this.app, this));
 	}
 
 	onunload() {
@@ -50,36 +50,36 @@ export default class PnOPlugin extends Plugin {
 	}
 }
 
-function filterFileList(settings:SettingsPNO, list:TFile[]):TFile[]{
-	if (settings.includePNPath){
-		if (settings.includePNPathIsRegex){
-			list = list.filter(f => f.path.match(settings.includePNPath))
+function filterFileList(settings:SettingsFNO, list:TFile[]):TFile[]{
+	if (settings.includePath){
+		if (settings.includePathIsRegex){
+			list = list.filter(f => f.path.match(settings.includePath))
 		} else {
-			list = list.filter(f => f.path.includes(settings.includePNPath))
+			list = list.filter(f => f.path.includes(settings.includePath))
 		}
 	}
 	
-	if (settings.includePNFileName){
-		if (settings.includePNFileNameIsRegex){
-			list = list.filter(f => f.name.match(settings.includePNFileName))
+	if (settings.includeFileName){
+		if (settings.includeFileNameIsRegex){
+			list = list.filter(f => f.name.match(settings.includeFileName))
 		} else {
-			list = list.filter(f => f.name.includes(settings.includePNFileName))
+			list = list.filter(f => f.name.includes(settings.includeFileName))
 		}
 	}
 
-	if (settings.excludePNPath){
-		if (settings.excludePNPathIsRegex){
-			list = list.filter(f => !f.path.match(settings.excludePNPath))
+	if (settings.excludePath){
+		if (settings.excludePathIsRegex){
+			list = list.filter(f => !f.path.match(settings.excludePath))
 		} else {
-			list = list.filter(f => !f.path.includes(settings.excludePNPath))
+			list = list.filter(f => !f.path.includes(settings.excludePath))
 		}
 	}
 	
-	if (settings.excludePNFileName){
-		if (settings.excludePNFileNameIsRegex){
-			list = list.filter(f => !f.name.match(settings.excludePNFileName))
+	if (settings.excludeFileName){
+		if (settings.excludeFileNameIsRegex){
+			list = list.filter(f => !f.name.match(settings.excludeFileName))
 		} else {
-			list = list.filter(f => !f.name.includes(settings.excludePNFileName))
+			list = list.filter(f => !f.name.includes(settings.excludeFileName))
 		}
 	}
 

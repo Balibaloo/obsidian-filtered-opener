@@ -1,34 +1,34 @@
 import { App, Notice, PluginSettingTab, Setting, TFolder, TextComponent } from "obsidian";
-import PnOPlugin from "./main";
+import FnOPlugin from "./main";
 
-export interface SettingsPNO {
+export interface SettingsFNO {
 	pickerIndex: number;
-  includePNPath: string;
-  includePNPathIsRegex: boolean;
-  includePNFileName: string;
-  includePNFileNameIsRegex: boolean;
-  excludePNPath: string;
-  excludePNPathIsRegex: boolean;
-  excludePNFileName: string;
-  excludePNFileNameIsRegex: boolean;
+  includePath: string;
+  includePathIsRegex: boolean;
+  includeFileName: string;
+  includeFileNameIsRegex: boolean;
+  excludePath: string;
+  excludePathIsRegex: boolean;
+  excludeFileName: string;
+  excludeFileNameIsRegex: boolean;
 }
 
-export const DEFAULT_SETTINGS: SettingsPNO = {
+export const DEFAULT_SETTINGS: SettingsFNO = {
 	pickerIndex: 0,
-  includePNPath: "",
-  includePNPathIsRegex: false,
-  includePNFileName: "",
-  includePNFileNameIsRegex: false,
-  excludePNPath: "",
-  excludePNPathIsRegex: false,
-  excludePNFileName: "",
-  excludePNFileNameIsRegex: false,
+  includePath: "",
+  includePathIsRegex: false,
+  includeFileName: "",
+  includeFileNameIsRegex: false,
+  excludePath: "",
+  excludePathIsRegex: false,
+  excludeFileName: "",
+  excludeFileNameIsRegex: false,
 }
 
-export class PNOSettingTab extends PluginSettingTab {
-	plugin: PnOPlugin;
+export class FNOSettingTab extends PluginSettingTab {
+	plugin: FnOPlugin;
 
-	constructor(app: App, plugin: PnOPlugin) {
+	constructor(app: App, plugin: FnOPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -39,11 +39,11 @@ export class PNOSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', { text: 'Settings for Project Note Opener.' });
+		containerEl.createEl('h2', { text: 'Settings for Filtered Note Opener.' });
 
 
 		new Setting(containerEl)
-			.setName("Project picker mode")
+			.setName("Picker mode")
 			.setDesc("Picker types: " + this.plugin.pickers.map(p => `${p.name}: ${p.description}`).join(", "))
 			.addDropdown(dropdown => {
 				// add populate dropdown options
@@ -65,47 +65,47 @@ export class PNOSettingTab extends PluginSettingTab {
 
     
     new Setting(containerEl)
-      .setName("Project Note Matching")
+      .setName("Note Filters")
       .setDesc("Toggles enable regex matching")
       .setHeading()
 
     const fileNameIncludesSetting = new Setting(containerEl)
       .setName("File name includes")
     this.createRegexText(fileNameIncludesSetting, {
-      getValue: () => settings.includePNFileName, 
-      setValue: v => { settings.includePNFileName = v },
-      getIsRegex: () => settings.includePNFileNameIsRegex, 
-      setIsRegex: v => { settings.includePNFileNameIsRegex = v }
+      getValue: () => settings.includeFileName, 
+      setValue: v => { settings.includeFileName = v },
+      getIsRegex: () => settings.includeFileNameIsRegex, 
+      setIsRegex: v => { settings.includeFileNameIsRegex = v }
     }
     )
 
     const fileNameExcludesSetting = new Setting(containerEl)
       .setName("File name excludes")
     this.createRegexText(fileNameExcludesSetting, {
-      getValue: () => settings.excludePNFileName, 
-      setValue: v => { settings.excludePNFileName = v },
-      getIsRegex: () => settings.excludePNFileNameIsRegex, 
-      setIsRegex: v => { settings.excludePNFileNameIsRegex = v }
+      getValue: () => settings.excludeFileName, 
+      setValue: v => { settings.excludeFileName = v },
+      getIsRegex: () => settings.excludeFileNameIsRegex, 
+      setIsRegex: v => { settings.excludeFileNameIsRegex = v }
     }
     )
 
     const pathIncludesSetting = new Setting(containerEl)
       .setName("Path includes")
     this.createRegexText(pathIncludesSetting, {
-      getValue: () => settings.includePNPath, 
-      setValue: v => { settings.includePNPath = v },
-      getIsRegex: () => settings.includePNPathIsRegex, 
-      setIsRegex: v => { settings.includePNPathIsRegex = v }
+      getValue: () => settings.includePath, 
+      setValue: v => { settings.includePath = v },
+      getIsRegex: () => settings.includePathIsRegex, 
+      setIsRegex: v => { settings.includePathIsRegex = v }
     }
     )
 
     const pathExcludesSetting = new Setting(containerEl)
       .setName("Path excludes")  
     this.createRegexText(pathExcludesSetting, {
-      getValue: () => settings.excludePNPath, 
-      setValue: v => { settings.excludePNPath = v },
-      getIsRegex: () => settings.excludePNPathIsRegex, 
-      setIsRegex: v => { settings.excludePNPathIsRegex = v }
+      getValue: () => settings.excludePath, 
+      setValue: v => { settings.excludePath = v },
+      getIsRegex: () => settings.excludePathIsRegex, 
+      setIsRegex: v => { settings.excludePathIsRegex = v }
     }
     )
   }
