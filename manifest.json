@@ -5,7 +5,7 @@
 	"version": "1.0.0",
 	"authorUrl": "https://roman.kubiv.com",
 	"fundingUrl": "https://www.buymeacoffee.com/romankubiv",
-	"description": "A simple plugin to chose and open notes based on filters.",
+	"description": "A simple plugin to chose and open notes with filters.",
 	"id": "filtered-note-opener",
 	"isDesktopOnly": false
 }
