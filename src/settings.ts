@@ -2,7 +2,6 @@ import { App, Notice, PluginSettingTab, Setting, TFolder, TextComponent } from "
 import PnOPlugin from "./main";
 
 export interface SettingsPNO {
-	projectFolderPath: string;
 	pickerIndex: number;
   includePNPath: string;
   includePNPathIsRegex: boolean;
@@ -15,7 +14,6 @@ export interface SettingsPNO {
 }
 
 export const DEFAULT_SETTINGS: SettingsPNO = {
-	projectFolderPath: '/',
 	pickerIndex: 0,
   includePNPath: "",
   includePNPathIsRegex: false,
@@ -43,25 +41,6 @@ export class PNOSettingTab extends PluginSettingTab {
 
 		containerEl.createEl('h2', { text: 'Settings for Project Note Opener.' });
 
-		new Setting(containerEl)
-			.setName('Root Project Folder Path')
-			.setDesc('The path to the folder which contains your projects')
-			.addText(text => text
-				.setPlaceholder('Please enter a path')
-        .setValue(settings.projectFolderPath)
-				.onChange(async (value) => {
-					let folder = this.app.vault.getAbstractFileByPath(value);
-					if (folder && folder instanceof TFolder) {
-						console.log('New Project Folder Path: ' + value);
-            settings.projectFolderPath = value;
-						text.inputEl.removeClasses(["opn_error"])
-						new Notice("Saved Project Folder Path")
-					} else {
-						text.inputEl.addClasses(["opn_error"])
-					}
-
-					await this.plugin.saveSettings();
-				}))
 
 		new Setting(containerEl)
 			.setName("Project picker mode")
@@ -84,6 +63,7 @@ export class PNOSettingTab extends PluginSettingTab {
 				})
 			});
 
+    
     new Setting(containerEl)
       .setName("Project Note Matching")
       .setDesc("Toggles enable regex matching")
