@@ -11,6 +11,9 @@ const flatPicker: NotePicker = {
 	name: "flat",
 	description: "Display all project notes in the root project folder as \'pathToProjectFolder/projectFolderName\'",
 	pick: (app:App, notes: TFile[], callback:(file:TFile)=>void): void => {
+		if (notes.length === 0) return;
+		if (notes.length === 1) return callback(notes[0]);
+
 		new FlatSuggestModal(app, notes,callback).open();
 	}
 }
