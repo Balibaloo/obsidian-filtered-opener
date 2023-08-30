@@ -7,15 +7,11 @@ export default class FnOPlugin extends Plugin {
 
 	pickers: NotePicker[] = pickers;
 
-	api: {
-		getNote: () => Promise<TFile>
-	};
+	api_getNote: () => Promise<TFile>
 
 	async onload() {
 		await this.loadSettings();
-		this.api = { 
-			getNote : this.getNote,
-		}
+		this.api_getNote = this.getNote,
 
 		// add a command to trigger the project note opener
 		this.addCommand({
