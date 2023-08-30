@@ -35,12 +35,7 @@ export class FNOSettingTab extends PluginSettingTab {
 
 	display(): void {
     const { containerEl, plugin: { settings } } = this;
-
-
 		containerEl.empty();
-
-		containerEl.createEl('h2', { text: 'Settings for Filtered Note Opener.' });
-
 
 		new Setting(containerEl)
 			.setName("Picker mode")
@@ -65,7 +60,7 @@ export class FNOSettingTab extends PluginSettingTab {
 
     
     new Setting(containerEl)
-      .setName("Note Filters")
+      .setName("Note filters")
       .setDesc("Toggles enable regex matching")
       .setHeading()
 

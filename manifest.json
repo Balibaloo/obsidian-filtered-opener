@@ -1,11 +1,11 @@
 {
 	"author": "Roman Kubiv",
 	"minAppVersion": "0.15.0",
-	"name": "Filtered Note Opener",
+	"name": "Open",
 	"version": "1.0.0",
 	"authorUrl": "https://roman.kubiv.com",
 	"fundingUrl": "https://www.buymeacoffee.com/romankubiv",
-	"description": "A simple plugin to chose and open notes with filters.",
-	"id": "filtered-note-opener",
+	"description": "Chose and open notes with filters.",
+	"id": "open",
 	"isDesktopOnly": false
 }
