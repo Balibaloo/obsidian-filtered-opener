@@ -7,30 +7,22 @@ export default class FnOPlugin extends Plugin {
 
 	pickers: NotePicker[] = pickers;
 
+	api: {
+		getNote: () => Promise<TFile>
+	};
+
 	async onload() {
 		await this.loadSettings();
+		this.api.getNote = this.getNote;
 
 		// add a command to trigger the project note opener
 		this.addCommand({
 			id: 'open-filtered-note-picker',
 			name: 'Open Filtered Note Picker',
-			callback: () => {
-				const filteredFiles: TFile[] = filterFileList(this.settings, this.app.vault.getFiles());
-				
-				const activeFileSiblings = this.app.workspace.getActiveFile()?.parent.children;
-				if (activeFileSiblings && activeFileSiblings[0]){
-					const activeProjectNotes = filterFileList( this.settings, activeFileSiblings.filter(f => f instanceof TFile) as TFile[]);
-					
-					if (activeProjectNotes[0])
-						filteredFiles.unshift(activeProjectNotes[0]);
-				}
-
-				this.pickers[this.settings.pickerIndex].pick(this.app, filteredFiles,
-					file=>{
-						this.app.workspace.getLeaf(true).openFile(file);
-				});
-				
-			}
+			callback: async () => {
+				const file = await this.getNote();
+				this.app.workspace.getLeaf(true).openFile(file);
+			},
 		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
@@ -47,6 +39,28 @@ export default class FnOPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+	}
+
+	public getNote(): Promise<TFile> {
+		return new Promise((resolve, reject) => {
+			const filteredFiles: TFile[] = filterFileList(this.settings, this.app.vault.getFiles());
+
+			const activeFileSiblings = this.app.workspace.getActiveFile()?.parent.children;
+			if (activeFileSiblings && activeFileSiblings[0]) {
+				const activeProjectNotes = filterFileList(this.settings, activeFileSiblings.filter(f => f instanceof TFile) as TFile[]);
+
+				if (activeProjectNotes[0])
+					filteredFiles.unshift(activeProjectNotes[0]);
+			}
+
+			if (filteredFiles.length === 1){
+				return resolve(filteredFiles[0]);
+			}
+
+			this.pickers[this.settings.pickerIndex].pick(this.app, filteredFiles,
+				resolve);
+
+		});
 	}
 }
 
