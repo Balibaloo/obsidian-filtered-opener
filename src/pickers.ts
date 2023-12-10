@@ -1,16 +1,16 @@
-import { App, FuzzySuggestModal, TFile } from "obsidian";
+import { App, FuzzySuggestModal, TFile, TFolder } from "obsidian";
 
 export type NotePicker = {
 	name: string;
 	description: String;
-	pick(app:App, notes: TFile[], callback:(file:TFile)=>void): void;
+	pick<T extends TFile | TFolder>(app: App, notes: T[], callback: (file: T) => void): void;
 }
 
 
 const flatPicker: NotePicker = {
 	name: "flat",
 	description: "Display all project notes in the root project folder as \'pathToProjectFolder/projectFolderName\'",
-	pick: (app:App, notes: TFile[], callback:(file:TFile)=>void): void => {
+	pick: <T extends TFile | TFolder>(app: App, notes: T[], callback: (file: T) => void): void => {
 		if (notes.length === 0) return;
 		if (notes.length === 1) return callback(notes[0]);
 
@@ -18,25 +18,25 @@ const flatPicker: NotePicker = {
 	}
 }
 
-class FlatSuggestModal extends FuzzySuggestModal<TFile> {
-	constructor(app: App, items:TFile[], callback:(item:TFile)=>void) {
+class FlatSuggestModal extends FuzzySuggestModal<TFile | TFolder> {
+	constructor(app: App, items: (TFile | TFolder)[], callback: (item: TFile | TFolder) => void) {
 		super(app);
 		this.items = items;
 		this.callback=callback;
 	}
 	
-	items:TFile[];
-	callback:(item:TFile)=>void;
+	items: (TFile | TFolder)[];
+	callback: (item: (TFile | TFolder)) => void;
 
-	getItems(): TFile[] {
+	getItems(): (TFile | TFolder)[] {
 		return this.items;
 	}
 
-	getItemText(item: TFile): string {
+	getItemText(item: TFile | TFolder): string {
 		let splitPath = item.path.split(/[\\/]/g);
 		return `${splitPath[1]}/ ${splitPath.at(-2)?.replace(/\.md$/gi,'')}`;
 	}
-	onChooseItem(item: TFile, evt: MouseEvent | KeyboardEvent): void {
+	onChooseItem(item: TFile | TFolder, evt: MouseEvent | KeyboardEvent): void {
 		this.callback(item);
 	}
 }
@@ -45,7 +45,7 @@ class FlatSuggestModal extends FuzzySuggestModal<TFile> {
 const recursivePicker: NotePicker = {
 	name: "recursive",
 	description: "Chose a top level folder in the root project folder and then between any subfolders (if necessary)",
-	pick: (app:App, notes: TFile[],callback:(file:TFile)=>void): void => {
+	pick: <T extends TFile | TFolder>(app: App, notes: T[], callback: (file: T) => void): void => {
 		if (notes.length === 0) return;
 		if (notes.length === 1) return callback(notes[0]);
 
@@ -56,7 +56,7 @@ const recursivePicker: NotePicker = {
 		} while ( folders.length === 1 );
 		
 		if (depth === 1){
-			new FlatSuggestModal(app, notes, (f:TFile)=>{
+			new FlatSuggestModal(app, notes, (f: T) => {
 				callback(f);
 			} ).open();
 
