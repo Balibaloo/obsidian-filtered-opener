@@ -110,7 +110,7 @@ export class FNOSettingTab extends PluginSettingTab {
     values: { getValue(): string, setValue(v: string): void, getIsRegex(): boolean, setIsRegex(b: boolean): void }) {
     textC.addText(text => {
       text.setValue(values.getValue())
-        .setPlaceholder(values.getIsRegex() ? "regex" : "Text excludes")
+        .setPlaceholder(values.getIsRegex() ? "regex" : "text")
         .setValue(values.getValue())
         .onChange(async v => {
           if (values.getIsRegex() && v !== "" && !isValidRegex(v)) {
