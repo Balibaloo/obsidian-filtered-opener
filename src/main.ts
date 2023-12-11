@@ -59,8 +59,10 @@ export default class FnOPlugin extends Plugin {
 			if (activeFileSiblings && activeFileSiblings[0]) {
 				const activeProjectNotes = filterFileList(this.settings, activeFileSiblings.filter(f => f instanceof TFile) as TFile[]);
 
-				if (activeProjectNotes[0])
+				if (activeProjectNotes[0]){
+					filteredFiles.remove(activeProjectNotes[0]);
 					filteredFiles.unshift(activeProjectNotes[0]);
+				}
 			}
 
 			if (filteredFiles.length === 1){
