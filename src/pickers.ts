@@ -23,10 +23,22 @@ class FlatSuggestModal extends FuzzySuggestModal<TFile | TFolder> {
 		super(app);
 		this.items = items;
 		this.callback=callback;
+
+		const splitPaths = items.map(i => i.path.split("/"));
+
+		this.allPathsSameLength = splitPaths.every(path => path.length === splitPaths[0].length);
+
+		// Find last common directory index
+		const minLength = Math.min(...splitPaths.map(path => path.length));
+		const firstDifferentDirIndex = [...Array(minLength).keys()]
+			.findIndex(i => !splitPaths.every(path => path[i] === splitPaths[0][i]))
+		this.firstDifferentDirIndex = firstDifferentDirIndex === -1 ? 0 : firstDifferentDirIndex;
 	}
 	
 	items: (TFile | TFolder)[];
 	callback: (item: (TFile | TFolder)) => void;
+	firstDifferentDirIndex: number;
+	allPathsSameLength: boolean;
 
 	getItems(): (TFile | TFolder)[] {
 		return this.items;
@@ -34,7 +46,16 @@ class FlatSuggestModal extends FuzzySuggestModal<TFile | TFolder> {
 
 	getItemText(item: TFile | TFolder): string {
 		let splitPath = item.path.split(/[\\/]/g);
-		return `${splitPath[1]}/ ${splitPath.at(-2)?.replace(/\.md$/gi,'')}`;
+
+		// make sure context dir not the same as directory
+		const contextDirIndex = this.firstDifferentDirIndex === splitPath.length - 1 ?
+			this.firstDifferentDirIndex - 1 :
+			this.firstDifferentDirIndex;
+
+		const contextDir = this.allPathsSameLength ? splitPath[contextDirIndex] : splitPath.at(-2);
+		const entityName = splitPath.at(-1)?.replace(/\.md$/gi, '');
+
+		return `${contextDir || ""}/ ${entityName}`;
 	}
 	onChooseItem(item: TFile | TFolder, evt: MouseEvent | KeyboardEvent): void {
 		this.callback(item);
