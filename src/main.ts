@@ -75,24 +75,27 @@ export default class FnOPlugin extends Plugin {
 		});
 	}
 
-	public getDir(): Promise<TFolder> {
+	public getDir(rootDir="/", depth=this.settings.dirSearchDepth, includeRoots=false): Promise<TFolder> {
 		return new Promise((resolve, reject) => {
 
 			// Get list of folders at a depth
 			let dirs: TFolder[] = [];
-			const { dirSearchIncludeRoots } = this.settings;
-			function appendDirsStartingFrom(directory: TFolder, currentDepth: number, maxDepth: number) {
-				if (dirSearchIncludeRoots || currentDepth === maxDepth)
+			function appendDirsStartingFrom(directory: TFolder, currentDepth: number) {
+				if (includeRoots || currentDepth === depth)
 					dirs.push(directory);
 
 				// continue traverse if not leaf
-				if (currentDepth <= maxDepth) {
+				if (currentDepth <= depth) {
 					(directory.children.filter(f => f instanceof TFolder) as TFolder[])
-						.flatMap(child => appendDirsStartingFrom(child, currentDepth + 1, maxDepth));
+						.flatMap(child => appendDirsStartingFrom(child, currentDepth + 1));
 				}
 			}
 
-			appendDirsStartingFrom(this.app.vault.getRoot(), 0, this.settings.dirSearchDepth);
+			const rootDirInstance = this.app.vault.getAbstractFileByPath(rootDir)
+			if (!(rootDirInstance instanceof TFolder))
+				return;
+
+			appendDirsStartingFrom(rootDirInstance, 0);
 
 			const filteredDirs = filterDirList(this.settings, dirs);
 
