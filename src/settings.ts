@@ -11,6 +11,16 @@ export interface SettingsFNO {
   excludePathIsRegex: boolean;
   excludeFileName: string;
   excludeFileNameIsRegex: boolean;
+  dirSearchDepth: number;
+  dirSearchIncludeRoots: boolean;
+  includeDirPath: string;
+  includeDirPathIsRegex: boolean;
+  includeDirName: string;
+  includeDirNameIsRegex: boolean;
+  excludeDirPath: string;
+  excludeDirPathIsRegex: boolean;
+  excludeDirName: string;
+  excludeDirNameIsRegex: boolean;
 }
 
 export const DEFAULT_SETTINGS: SettingsFNO = {
@@ -23,6 +33,16 @@ export const DEFAULT_SETTINGS: SettingsFNO = {
   excludePathIsRegex: false,
   excludeFileName: "",
   excludeFileNameIsRegex: false,
+  dirSearchDepth: 1,
+  dirSearchIncludeRoots: true,
+  includeDirPath: "",
+  includeDirPathIsRegex: false,
+  includeDirName: "",
+  includeDirNameIsRegex: false,
+  excludeDirPath: "",
+  excludeDirPathIsRegex: false,
+  excludeDirName: "",
+  excludeDirNameIsRegex: false,
 }
 
 export class FNOSettingTab extends PluginSettingTab {
@@ -103,6 +123,73 @@ export class FNOSettingTab extends PluginSettingTab {
       setIsRegex: v => { settings.excludePathIsRegex = v }
     }
     )
+
+    new Setting(containerEl)
+      .setName("Folder picking")
+      .setDesc("The depth of folders to search through and if folders at previous depths should be shown")
+      .addText(text => {
+        text.setValue(this.plugin.settings.dirSearchDepth.toString())
+        text.setPlaceholder("depth")
+        text.onChange(async v => {
+          const depth = parseInt(v);
+          if (!depth) {
+            new Notice("Error: depth must be an number")
+            return;
+          }
+
+          this.plugin.settings.dirSearchDepth = depth;
+          await this.plugin.saveSettings();
+          new Notice("Saved");
+        })
+      }).addToggle(toggle => {
+        toggle.setTooltip("Include folders at previous depths")
+        toggle.setValue(this.plugin.settings.dirSearchIncludeRoots)
+        toggle.onChange(async v => {
+          this.plugin.settings.dirSearchIncludeRoots = v;
+          await this.plugin.saveSettings();
+        })
+      })
+
+    new Setting(containerEl)
+      .setName("Directory filters")
+      .setDesc("Used by the directory picker")
+      .setHeading()
+
+    const dirNameIncludesSetting = new Setting(containerEl)
+      .setName("Folder name includes")
+    this.createRegexText(dirNameIncludesSetting, {
+      getValue: () => settings.includeDirName,
+      setValue: v => { settings.includeDirName = v },
+      getIsRegex: () => settings.includeDirNameIsRegex,
+      setIsRegex: v => { settings.includeDirNameIsRegex = v }
+    })
+
+    const dirNameExcludesSetting = new Setting(containerEl)
+      .setName("Folder name excludes")
+    this.createRegexText(dirNameExcludesSetting, {
+      getValue: () => settings.excludeDirName,
+      setValue: v => { settings.excludeDirName = v },
+      getIsRegex: () => settings.excludeDirNameIsRegex,
+      setIsRegex: v => { settings.excludeDirNameIsRegex = v }
+    })
+
+    const dirPathIncludesSetting = new Setting(containerEl)
+      .setName("Folder path includes")
+    this.createRegexText(dirPathIncludesSetting, {
+      getValue: () => settings.includeDirPath,
+      setValue: v => { settings.includeDirPath = v },
+      getIsRegex: () => settings.includeDirPathIsRegex,
+      setIsRegex: v => { settings.includeDirPathIsRegex = v }
+    })
+
+    const dirPathExcludesSetting = new Setting(containerEl)
+      .setName("Folder path excludes")
+    this.createRegexText(dirPathExcludesSetting, {
+      getValue: () => settings.excludeDirPath,
+      setValue: v => { settings.excludeDirPath = v },
+      getIsRegex: () => settings.excludeDirPathIsRegex,
+      setIsRegex: v => { settings.excludeDirPathIsRegex = v }
+    })
   }
 
   // {value:, isRegex:settings.excludePNFileNameIsRegex}

@@ -1,4 +1,4 @@
-import { Plugin, TFile } from 'obsidian';
+import { Plugin, TFile, TFolder } from 'obsidian';
 import { DEFAULT_SETTINGS, FNOSettingTab, SettingsFNO } from './settings';
 import { NotePicker, pickers } from "./pickers"
 
@@ -8,10 +8,12 @@ export default class FnOPlugin extends Plugin {
 	pickers: NotePicker[] = pickers;
 
 	api_getNote: () => Promise<TFile>
+	api_getDir: () => Promise<TFolder>;
 
 	async onload() {
 		await this.loadSettings();
 		this.api_getNote = this.getNote,
+			this.api_getDir = this.getDir,
 
 		// add a command to trigger the project note opener
 		this.addCommand({
@@ -20,6 +22,16 @@ export default class FnOPlugin extends Plugin {
 			callback: async () => {
 				const file = await this.getNote();
 				this.app.workspace.getLeaf(true).openFile(file);
+			},
+		});
+
+		// add a command to trigger the project note opener
+		this.addCommand({
+			id: 'pick-dir',
+			name: 'Pick Dir',
+			callback: async () => {
+				const dir = await this.getDir();
+				console.log(dir);
 			},
 		});
 
@@ -56,9 +68,39 @@ export default class FnOPlugin extends Plugin {
 			}
 
 			this.pickers[this.settings.pickerIndex].pick(this.app, filteredFiles,
-				resolve);
+				file => resolve(file));
 
 		});
+	}
+
+	public getDir(): Promise<TFolder> {
+		return new Promise((resolve, reject) => {
+
+			// Get list of folders at a depth
+			let dirs: TFolder[] = [];
+			const { dirSearchIncludeRoots } = this.settings;
+			function appendDirsStartingFrom(directory: TFolder, currentDepth: number, maxDepth: number) {
+				if (dirSearchIncludeRoots || currentDepth === maxDepth)
+					dirs.push(directory);
+
+				// continue traverse if not leaf
+				if (currentDepth <= maxDepth) {
+					(directory.children.filter(f => f instanceof TFolder) as TFolder[])
+						.flatMap(child => appendDirsStartingFrom(child, currentDepth + 1, maxDepth));
+				}
+			}
+
+			appendDirsStartingFrom(this.app.vault.getRoot(), 0, this.settings.dirSearchDepth);
+
+			const filteredDirs = filterDirList(this.settings, dirs);
+
+			if (filteredDirs.length === 1) {
+				return resolve(filteredDirs[0]);
+			}
+
+			this.pickers[this.settings.pickerIndex]
+				.pick(this.app, filteredDirs, dir => resolve(dir));
+		})
 	}
 }
 
@@ -92,6 +134,42 @@ function filterFileList(settings:SettingsFNO, list:TFile[]):TFile[]{
 			list = list.filter(f => !f.name.match(settings.excludeFileName))
 		} else {
 			list = list.filter(f => !f.name.includes(settings.excludeFileName))
+		}
+	}
+
+	return list;
+}
+
+function filterDirList(settings: SettingsFNO, list: TFolder[]): TFolder[] {
+	if (settings.includeDirPath) {
+		if (settings.includeDirPathIsRegex) {
+			list = list.filter(f => f.path.match(settings.includeDirPath))
+		} else {
+			list = list.filter(f => f.path.includes(settings.includeDirPath))
+		}
+	}
+
+	if (settings.includeDirName) {
+		if (settings.includeDirNameIsRegex) {
+			list = list.filter(f => f.name.match(settings.includeDirName))
+		} else {
+			list = list.filter(f => f.name.includes(settings.includeDirName))
+		}
+	}
+
+	if (settings.excludeDirPath) {
+		if (settings.excludeDirPathIsRegex) {
+			list = list.filter(f => !f.path.match(settings.excludeDirPath))
+		} else {
+			list = list.filter(f => !f.path.includes(settings.excludeDirPath))
+		}
+	}
+
+	if (settings.excludeDirName) {
+		if (settings.excludeDirNameIsRegex) {
+			list = list.filter(f => !f.name.match(settings.excludeDirName))
+		} else {
+			list = list.filter(f => !f.name.includes(settings.excludeDirName))
 		}
 	}
 
