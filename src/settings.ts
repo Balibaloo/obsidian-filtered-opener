@@ -1,6 +1,7 @@
 import { App, Notice, PluginSettingTab, Setting, TFolder, TextComponent } from "obsidian";
 import FnOPlugin from "./main";
 import { DirFilterSet, FileFilterSet } from "src";
+import {BoolInputPrompt, GenericInputPrompt} from "./UI"
 
 export interface SettingsFNO {
   pickerIndex: number;
@@ -46,6 +47,10 @@ export class FNOSettingTab extends PluginSettingTab {
     const { containerEl, plugin: { settings } } = this;
 		containerEl.empty();
 
+    new Setting(containerEl)
+      .setName("Picker Settings")
+      .setHeading()
+
 		new Setting(containerEl)
 			.setName("Picker mode")
 			.setDesc("Picker types: " + this.plugin.pickers.map(p => `${p.name}: ${p.description}`).join(", "))
@@ -67,51 +72,22 @@ export class FNOSettingTab extends PluginSettingTab {
 				})
 			});
 
-    
     new Setting(containerEl)
-      .setName("Note filters")
-      .setDesc("Toggles enable regex matching")
+      .setName("Note filter sets")
       .setHeading()
+      .setDesc(`Add, rename and delete filter sets here`)
+    
+    createSettingsFileFilterSets(containerEl, this.plugin.settings.fileFilterSets, async sets => {
+      this.plugin.settings.fileFilterSets = sets;
+      await this.plugin.saveSettings();
+    }, () => {
+      this.hide();
+      this.display();
+    })
 
-    const fileNameIncludesSetting = new Setting(containerEl)
-      .setName("File name includes")
-    this.createRegexText(fileNameIncludesSetting, {
-      getValue: () => settings.includeFileName, 
-      setValue: v => { settings.includeFileName = v },
-      getIsRegex: () => settings.includeFileNameIsRegex, 
-      setIsRegex: v => { settings.includeFileNameIsRegex = v }
-    }
-    )
-
-    const fileNameExcludesSetting = new Setting(containerEl)
-      .setName("File name excludes")
-    this.createRegexText(fileNameExcludesSetting, {
-      getValue: () => settings.excludeFileName, 
-      setValue: v => { settings.excludeFileName = v },
-      getIsRegex: () => settings.excludeFileNameIsRegex, 
-      setIsRegex: v => { settings.excludeFileNameIsRegex = v }
-    }
-    )
-
-    const pathIncludesSetting = new Setting(containerEl)
-      .setName("Path includes")
-    this.createRegexText(pathIncludesSetting, {
-      getValue: () => settings.includePath, 
-      setValue: v => { settings.includePath = v },
-      getIsRegex: () => settings.includePathIsRegex, 
-      setIsRegex: v => { settings.includePathIsRegex = v }
-    }
-    )
-
-    const pathExcludesSetting = new Setting(containerEl)
-      .setName("Path excludes")  
-    this.createRegexText(pathExcludesSetting, {
-      getValue: () => settings.excludePath, 
-      setValue: v => { settings.excludePath = v },
-      getIsRegex: () => settings.excludePathIsRegex, 
-      setIsRegex: v => { settings.excludePathIsRegex = v }
-    }
-    )
+    new Setting(containerEl)
+      .setName("Folder Settings")
+      .setHeading()
 
     new Setting(containerEl)
       .setName("Folder picking")
@@ -138,86 +114,226 @@ export class FNOSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         })
       })
-
+    
     new Setting(containerEl)
-      .setName("Directory filters")
-      .setDesc("Used by the directory picker")
+      .setName("Folder filter sets")
       .setHeading()
-
-    const dirNameIncludesSetting = new Setting(containerEl)
-      .setName("Folder name includes")
-    this.createRegexText(dirNameIncludesSetting, {
-      getValue: () => settings.includeDirName,
-      setValue: v => { settings.includeDirName = v },
-      getIsRegex: () => settings.includeDirNameIsRegex,
-      setIsRegex: v => { settings.includeDirNameIsRegex = v }
+      .setDesc(`Add, rename and delete filter sets here`)
+    createSettingsDirFilterSets(containerEl, this.plugin.settings.dirFilterSets, async sets => {
+      this.plugin.settings.dirFilterSets = sets;
+      await this.plugin.saveSettings();
+    }, () => {
+      this.hide();
+      this.display();
     })
 
-    const dirNameExcludesSetting = new Setting(containerEl)
-      .setName("Folder name excludes")
-    this.createRegexText(dirNameExcludesSetting, {
-      getValue: () => settings.excludeDirName,
-      setValue: v => { settings.excludeDirName = v },
-      getIsRegex: () => settings.excludeDirNameIsRegex,
-      setIsRegex: v => { settings.excludeDirNameIsRegex = v }
-    })
-
-    const dirPathIncludesSetting = new Setting(containerEl)
-      .setName("Folder path includes")
-    this.createRegexText(dirPathIncludesSetting, {
-      getValue: () => settings.includeDirPath,
-      setValue: v => { settings.includeDirPath = v },
-      getIsRegex: () => settings.includeDirPathIsRegex,
-      setIsRegex: v => { settings.includeDirPathIsRegex = v }
-    })
-
-    const dirPathExcludesSetting = new Setting(containerEl)
-      .setName("Folder path excludes")
-    this.createRegexText(dirPathExcludesSetting, {
-      getValue: () => settings.excludeDirPath,
-      setValue: v => { settings.excludeDirPath = v },
-      getIsRegex: () => settings.excludeDirPathIsRegex,
-      setIsRegex: v => { settings.excludeDirPathIsRegex = v }
-    })
-  }
-
-  // {value:, isRegex:settings.excludePNFileNameIsRegex}
-  createRegexText(textC: Setting,
-    values: { getValue(): string, setValue(v: string): void, getIsRegex(): boolean, setIsRegex(b: boolean): void }) {
-    textC.addText(text => {
-      text.setValue(values.getValue())
-        .setPlaceholder(values.getIsRegex() ? "regex" : "text")
-        .setValue(values.getValue())
-        .onChange(async v => {
-          if (values.getIsRegex() && v !== "" && !isValidRegex(v)) {
-            text.inputEl.addClasses(["opn_error"]);
-
-          } else {
-            values.setValue(v);
-            text.inputEl.removeClasses(["opn_error"]);
-            await this.plugin.saveSettings();
-            new Notice("Saved");
-          }
-        })
-    })
-      .addToggle(toggle => {
-        toggle.setTooltip("Use Regex expression")
-        .setValue(values.getIsRegex())
-        .onChange(async v => {
-          values.setIsRegex(v);
-          await this.plugin.saveSettings();
-        }) // todo check text
-    })
   }
 }
 
-// https://stackoverflow.com/questions/17250815/how-to-check-if-the-input-string-is-a-valid-regular-expression
-function isValidRegex(s: string) {
-  try {
-    const m = s.match(/^([/~@;%#'])(.*?)\1([gimsuy]*)$/);
-    return m ? !!new RegExp(m[2], m[3])
-      : false;
-  } catch (e) {
-    return false
-  }
+export function addFilterSetHeader(
+  containerEl: HTMLElement,
+  header: string,
+  deletable = true,
+  renamable = true,
+  saveName:(newName:string)=>Promise<void>| void,
+  deleteSet:()=>Promise<void>| void,
+  ){
+const filterSetHeader = new Setting(containerEl)
+  .setName(header).setHeading()
+
+if (renamable){
+  filterSetHeader.addExtraButton(btn => {
+    btn.setIcon("pencil").onClick(async () => {
+      const newName = await GenericInputPrompt.Prompt(this.app, "Edit Filter Set Name", undefined, header);
+      const newNameFormatted = newName.trim()
+      if (!newNameFormatted){
+        new Notice("Error: Filter Set Name cannot be blank");
+        return;
+      }
+      // TODO unique filter name check
+      
+      await saveName(newNameFormatted);
+    })
+  })
+}
+
+if (deletable){
+  filterSetHeader.addExtraButton(btn => {
+    btn.setIcon("trash-2").onClick(async () => {
+      if ( await BoolInputPrompt.Prompt(this.app, `Delete ${header}?`)){
+        await deleteSet();
+      }
+    })
+  })
+}
+}
+
+
+export function createSettingsFileFilterSets(
+  containerEl: HTMLElement,
+  filterSets: FileFilterSet[],
+  saveFilterSets: (sets: FileFilterSet[]) => Promise<void> | void,
+  refreshDisplay: () => void,
+) {
+  filterSets.forEach((filterSet, i) => {
+    createFileFilterSetInputs(containerEl, filterSet, true, true, async set => {
+      if (!set) {
+        filterSets.splice(i,1);
+      } else {
+        filterSets[i] = set;
+      }
+      await saveFilterSets(filterSets)
+      refreshDisplay();
+    }, refreshDisplay)
+  })
+
+  new Setting(containerEl)
+    .addButton(button => {
+      button.setButtonText("Add file filter set");
+      button.onClick(async e => {
+        await saveFilterSets([...filterSets, DEFAULT_FILE_FILTER_SET]);
+        refreshDisplay();
+      })
+      })
+}
+
+export function createFileFilterSetInputs(
+  containerEl: HTMLElement,
+  filterSet: FileFilterSet,
+  deletable = true,
+  renamable = true,
+  saveSet: (set: FileFilterSet|null) => Promise<void> | void,
+  refreshDisplay: () => void,
+) {
+
+  addFilterSetHeader(containerEl, filterSet.name, deletable, renamable, async name => {
+    filterSet.name = name;
+    await saveSet(filterSet);
+    refreshDisplay();
+  }, () => {saveSet(null)})
+
+  new Setting(containerEl)
+    .setName("Include PathName")
+    .addText(text => {
+      text.setValue(filterSet.includePathName)
+        .onChange(async v => {
+        filterSet.includePathName = v.trim();
+        await saveSet(filterSet);
+      })
+    })
+
+  new Setting(containerEl)
+    .setName("Exclude PathName")
+    .addText(text => {
+      text.setValue(filterSet.excludePathName)
+        .onChange(async v => {
+          filterSet.excludePathName = v.trim();
+          await saveSet(filterSet);
+        })
+    })
+
+  new Setting(containerEl)
+    .setName("Include FileName")
+    .addText(text => {
+      text.setValue(filterSet.includeFileName)
+        .onChange(async v => {
+        filterSet.includeFileName = v.trim();
+        await saveSet(filterSet);
+      })
+    })
+
+  new Setting(containerEl)
+    .setName("Exclude FileName")
+    .addText(text => {
+      text.setValue(filterSet.excludeFileName)
+        .onChange(async v => {
+          filterSet.excludeFileName = v.trim();
+          await saveSet(filterSet);
+        })
+    })
+}
+
+export function createSettingsDirFilterSets(
+  containerEl: HTMLElement,
+  filterSets: DirFilterSet[],
+  saveFilterSets: (sets: DirFilterSet[]) => Promise<void> | void,
+  refreshDisplay: () => void,
+) {
+  filterSets.forEach((filterSet, i) => {
+    createDirFilterSetInputs(containerEl, filterSet, true, true, async set => {
+      if (!set) {
+        filterSets.splice(i, 1);
+        await saveFilterSets(filterSets)
+        refreshDisplay();
+      } else {
+        filterSets[i] = set;
+        await saveFilterSets(filterSets)
+      }
+    }, refreshDisplay)
+  })
+
+  new Setting(containerEl)
+    .addButton(button => {
+      button.setButtonText("Add folder filter set");
+      button.onClick(async e => {
+        await saveFilterSets([...filterSets, DEFAULT_FOLDER_FILTER_SET]);
+        refreshDisplay();
+      })
+      })
+}
+
+export function createDirFilterSetInputs(
+  containerEl: HTMLElement,
+  filterSet: DirFilterSet,
+  deletable = true,
+  renamable = true,
+  saveSet: (set: DirFilterSet|null) => Promise<void> | void,
+  refreshDisplay: () => void,
+) {
+
+  addFilterSetHeader(containerEl, filterSet.name, deletable, renamable, async name => {
+    filterSet.name = name;
+    await saveSet(filterSet);
+    refreshDisplay();
+  }, () => {saveSet(null)})
+
+  new Setting(containerEl)
+    .setName("Include Folder Name")
+    .addText(text => {
+      text.setValue(filterSet.includeDirName)
+        .onChange(async v => {
+        filterSet.includeDirName = v.trim();
+        await saveSet(filterSet);
+      })
+    })
+
+  new Setting(containerEl)
+    .setName("Exclude Folder Name")
+    .addText(text => {
+      text.setValue(filterSet.excludeDirName)
+        .onChange(async v => {
+        filterSet.excludeDirName = v.trim();
+        await saveSet(filterSet);
+      })
+    })
+
+  new Setting(containerEl)
+    .setName("Include PathName")
+    .addText(text => {
+      text.setValue(filterSet.includePathName)
+        .onChange(async v => {
+        filterSet.includePathName = v.trim();
+        await saveSet(filterSet);
+      })
+    })
+
+  new Setting(containerEl)
+    .setName("Exclude PathName")
+    .addText(text => {
+      text.setValue(filterSet.excludePathName)
+        .onChange(async v => {
+        filterSet.excludePathName = v.trim();
+        await saveSet(filterSet);
+      })
+    })
 }
