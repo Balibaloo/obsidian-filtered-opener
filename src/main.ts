@@ -1,5 +1,5 @@
 import { App, FuzzySuggestModal, Notice, Plugin, TFile, TFolder } from 'obsidian';
-import { DEFAULT_FILE_FILTER_SET, DEFAULT_FOLDER_FILTER_SET, DEFAULT_SETTINGS, FNOSettingTab, SettingsFNO } from './settings';
+import { DEFAULT_FILE_FILTER_SET, DEFAULT_FOLDER_FILTER_SET, DEFAULT_SETTINGS, FNOSettingTab, SettingsFNO, createDirFilterSetInputs, createFileFilterSetInputs, createSettingsDirFilterSets, createSettingsFileFilterSets } from './settings';
 import { NotePicker, pickers } from "./pickers"
 import { DirFilterSet, FileFilterSet, FilterSet } from 'src';
 
@@ -38,11 +38,43 @@ export default class FnOPlugin extends Plugin {
 
 	api_getNote: () => Promise<TFile>
 	api_getDir: () => Promise<TFolder>;
+	api_createSettingsFileFilterSets: (
+		containerEl: HTMLElement,
+		filterSets: FileFilterSet[],
+		saveFilterSets: (sets: FileFilterSet[]) => Promise<void> | void,
+		refreshDisplay: () => void,
+	) => void;
+	api_createFileFilterSetInputs: (
+		containerEl: HTMLElement,
+		filterSet: FileFilterSet,
+		deletable: boolean,
+		renamable: boolean,
+		saveSet: (set: FileFilterSet|null) => Promise<void> | void,
+		refreshDisplay: () => void,
+	) => void;
+	api_createSettingsDirFilterSets: (
+		containerEl: HTMLElement,
+		filterSets: DirFilterSet[],
+		saveFilterSets: (sets: DirFilterSet[]) => Promise<void> | void,
+		refreshDisplay: () => void,
+	) => void;
+	api_createDirFilterSetInputs: (
+		containerEl: HTMLElement,
+		filterSet: DirFilterSet,
+		deletable: boolean,
+		renamable: boolean,
+		saveSet: (set: DirFilterSet|null) => Promise<void> | void,
+		refreshDisplay: () => void,
+	) => void;
 
 	async onload() {
 		await this.loadSettings();
 		this.api_getNote = this.getNote,
 			this.api_getDir = this.getDir,
+		this.api_createSettingsFileFilterSets = createSettingsFileFilterSets;
+		this.api_createFileFilterSetInputs = createFileFilterSetInputs;
+		this.api_createSettingsDirFilterSets = createSettingsDirFilterSets;
+		this.api_createDirFilterSetInputs = createDirFilterSetInputs;
 
 		// add a command to trigger the project note opener
 		this.addCommand({
