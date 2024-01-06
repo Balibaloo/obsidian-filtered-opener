@@ -133,6 +133,7 @@ export class FNOSettingTab extends PluginSettingTab {
 export function addFilterSetHeader(
   containerEl: HTMLElement,
   header: string,
+  description = "",
   deletable = true,
   renamable = true,
   saveName:(newName:string)=>Promise<void>| void,
@@ -140,6 +141,7 @@ export function addFilterSetHeader(
   ){
 const filterSetHeader = new Setting(containerEl)
   .setName(header).setHeading()
+  .setDesc(description);
 
 if (renamable){
   filterSetHeader.addExtraButton(btn => {
@@ -176,7 +178,7 @@ export function createSettingsFileFilterSets(
   refreshDisplay: () => void,
 ) {
   filterSets.forEach((filterSet, i) => {
-    createFileFilterSetInputs(containerEl, filterSet, true, true, async set => {
+    createFileFilterSetInputs(containerEl, filterSet, "", true, true, async set => {
       if (!set) {
         filterSets.splice(i,1);
       } else {
@@ -200,13 +202,14 @@ export function createSettingsFileFilterSets(
 export function createFileFilterSetInputs(
   containerEl: HTMLElement,
   filterSet: FileFilterSet,
+  description = "",
   deletable = true,
   renamable = true,
   saveSet: (set: FileFilterSet|null) => Promise<void> | void,
   refreshDisplay: () => void,
 ) {
 
-  addFilterSetHeader(containerEl, filterSet.name, deletable, renamable, async name => {
+  addFilterSetHeader(containerEl, filterSet.name, description, deletable, renamable, async name => {
     filterSet.name = name;
     await saveSet(filterSet);
     refreshDisplay();
@@ -260,7 +263,7 @@ export function createSettingsDirFilterSets(
   refreshDisplay: () => void,
 ) {
   filterSets.forEach((filterSet, i) => {
-    createDirFilterSetInputs(containerEl, filterSet, true, true, async set => {
+    createDirFilterSetInputs(containerEl, filterSet, "", true, true, async set => {
       if (!set) {
         filterSets.splice(i, 1);
         await saveFilterSets(filterSets)
@@ -285,13 +288,14 @@ export function createSettingsDirFilterSets(
 export function createDirFilterSetInputs(
   containerEl: HTMLElement,
   filterSet: DirFilterSet,
+  description = "",
   deletable = true,
   renamable = true,
   saveSet: (set: DirFilterSet|null) => Promise<void> | void,
   refreshDisplay: () => void,
 ) {
 
-  addFilterSetHeader(containerEl, filterSet.name, deletable, renamable, async name => {
+  addFilterSetHeader(containerEl, filterSet.name, description, deletable, renamable, async name => {
     filterSet.name = name;
     await saveSet(filterSet);
     refreshDisplay();

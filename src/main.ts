@@ -47,6 +47,7 @@ export default class FnOPlugin extends Plugin {
 	api_createFileFilterSetInputs: (
 		containerEl: HTMLElement,
 		filterSet: FileFilterSet,
+		description: string,
 		deletable: boolean,
 		renamable: boolean,
 		saveSet: (set: FileFilterSet|null) => Promise<void> | void,
@@ -61,6 +62,7 @@ export default class FnOPlugin extends Plugin {
 	api_createDirFilterSetInputs: (
 		containerEl: HTMLElement,
 		filterSet: DirFilterSet,
+		description: string,
 		deletable: boolean,
 		renamable: boolean,
 		saveSet: (set: DirFilterSet|null) => Promise<void> | void,
