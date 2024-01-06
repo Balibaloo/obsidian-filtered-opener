@@ -1,6 +1,35 @@
-import { Plugin, TFile, TFolder } from 'obsidian';
-import { DEFAULT_SETTINGS, FNOSettingTab, SettingsFNO } from './settings';
+import { App, FuzzySuggestModal, Notice, Plugin, TFile, TFolder } from 'obsidian';
+import { DEFAULT_FILE_FILTER_SET, DEFAULT_FOLDER_FILTER_SET, DEFAULT_SETTINGS, FNOSettingTab, SettingsFNO } from './settings';
 import { NotePicker, pickers } from "./pickers"
+import { DirFilterSet, FileFilterSet, FilterSet } from 'src';
+
+class FilterSetSuggestModal<T extends FilterSet> extends FuzzySuggestModal<T> {
+	constructor(app: App, items: T[], callback: (item: T) => void) {
+		super(app);
+		this.items = items;
+		this.callback=callback;
+	}
+	
+	items: T[];
+	callback: (item: T) => void;
+
+	getItems(): T[] {
+		return this.items;
+	}
+
+	getItemText(item: T): string {
+		return `${item.name}`;
+	}
+	onChooseItem(item: T, evt: MouseEvent | KeyboardEvent): void {
+		this.callback(item);
+	}
+}
+
+export async function choseFilterSet<T extends FilterSet>(FilterSets:T[]):Promise<T> {
+  return new Promise((resolve,rejects) => {
+    new FilterSetSuggestModal<T>(this.app, FilterSets, resolve).open();
+  })
+}
 
 export default class FnOPlugin extends Plugin {
 	settings: SettingsFNO;
@@ -20,7 +49,16 @@ export default class FnOPlugin extends Plugin {
 			id: 'open-filtered-note-picker',
 			name: 'Open Filtered Note Picker',
 			callback: async () => {
-				const file = await this.getNote();
+				if (this.settings.fileFilterSets.length == 0){
+					new Notice("Error: no file filter sets defined");
+					return;
+				}
+
+				const filterSet = this.settings.fileFilterSets.length === 1 
+					? this.settings.fileFilterSets[0] 
+					: await choseFilterSet(this.settings.fileFilterSets)
+
+				const file = await this.getNote(filterSet);
 				this.app.workspace.getLeaf(true).openFile(file);
 			},
 		});
@@ -51,13 +89,13 @@ export default class FnOPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	public getNote(): Promise<TFile> {
+	public getNote(fileFilterSet:FileFilterSet = DEFAULT_FILE_FILTER_SET): Promise<TFile> {
 		return new Promise((resolve, reject) => {
-			const filteredFiles: TFile[] = filterFileList(this.settings, this.app.vault.getFiles());
+			const filteredFiles: TFile[] = filterFileList(fileFilterSet, this.app.vault.getFiles());
 
 			const activeFileSiblings = this.app.workspace.getActiveFile()?.parent.children;
 			if (activeFileSiblings && activeFileSiblings[0]) {
-				const activeProjectNotes = filterFileList(this.settings, activeFileSiblings.filter(f => f instanceof TFile) as TFile[]);
+				const activeProjectNotes = filterFileList(fileFilterSet, activeFileSiblings.filter(f => f instanceof TFile) as TFile[]);
 
 				if (activeProjectNotes[0]){
 					filteredFiles.remove(activeProjectNotes[0]);
@@ -75,7 +113,8 @@ export default class FnOPlugin extends Plugin {
 		});
 	}
 
-	public getDir(rootDir="/", depth=this.settings.dirSearchDepth, includeRoots=false): Promise<TFolder> {
+	public getDir(rootDir="/", depth=this.settings.dirSearchDepth, includeRoots=false, 
+		dirFilterSet:DirFilterSet = DEFAULT_FOLDER_FILTER_SET): Promise<TFolder> {
 		return new Promise((resolve, reject) => {
 
 			// Get list of folders at a depth
@@ -97,7 +136,7 @@ export default class FnOPlugin extends Plugin {
 
 			appendDirsStartingFrom(rootDirInstance, 0);
 
-			const filteredDirs = filterDirList(this.settings, dirs);
+			const filteredDirs = filterDirList(dirFilterSet, dirs);
 
 			if (filteredDirs.length === 1) {
 				return resolve(filteredDirs[0]);
@@ -109,33 +148,37 @@ export default class FnOPlugin extends Plugin {
 	}
 }
 
-function filterFileList(settings:SettingsFNO, list:TFile[]):TFile[]{
-	if (settings.includePath){
-		if (settings.includePathIsRegex){
-			list = list.filter(f => f.path.match(settings.includePath))
+function filterFileList(settings:FileFilterSet, list:TFile[]):TFile[]{
+	if (settings.includePathName){
+		const includePathNameRegExp = new RegExp(settings.includePathName);
+		if (includePathNameRegExp){
+			list = list.filter(f => f.path.match(includePathNameRegExp))
 		} else {
-			list = list.filter(f => f.path.includes(settings.includePath))
+			list = list.filter(f => f.path.includes(settings.includePathName))
 		}
 	}
 	
 	if (settings.includeFileName){
-		if (settings.includeFileNameIsRegex){
-			list = list.filter(f => f.name.match(settings.includeFileName))
+		const includeFileNameRegExp = new RegExp(settings.includeFileName);
+		if (includeFileNameRegExp){
+			list = list.filter(f => f.name.match(includeFileNameRegExp))
 		} else {
 			list = list.filter(f => f.name.includes(settings.includeFileName))
 		}
 	}
 
-	if (settings.excludePath){
-		if (settings.excludePathIsRegex){
-			list = list.filter(f => !f.path.match(settings.excludePath))
+	if (settings.excludePathName){
+		const excludePathNameRegExp = new RegExp(settings.excludePathName);
+		if (excludePathNameRegExp){
+			list = list.filter(f => !f.path.match(excludePathNameRegExp))
 		} else {
-			list = list.filter(f => !f.path.includes(settings.excludePath))
+			list = list.filter(f => !f.path.includes(settings.excludePathName))
 		}
 	}
 	
 	if (settings.excludeFileName){
-		if (settings.excludeFileNameIsRegex){
+		const excludeFileNameRegExp = new RegExp(settings.excludeFileName);
+		if (excludeFileNameRegExp){
 			list = list.filter(f => !f.name.match(settings.excludeFileName))
 		} else {
 			list = list.filter(f => !f.name.includes(settings.excludeFileName))
@@ -145,34 +188,38 @@ function filterFileList(settings:SettingsFNO, list:TFile[]):TFile[]{
 	return list;
 }
 
-function filterDirList(settings: SettingsFNO, list: TFolder[]): TFolder[] {
-	if (settings.includeDirPath) {
-		if (settings.includeDirPathIsRegex) {
-			list = list.filter(f => f.path.match(settings.includeDirPath))
+function filterDirList(settings: DirFilterSet, list: TFolder[]): TFolder[] {
+	if (settings.includePathName){
+		const includePathNameRegExp = new RegExp(settings.includePathName);
+		if (includePathNameRegExp){
+			list = list.filter(f => f.path.match(includePathNameRegExp))
 		} else {
-			list = list.filter(f => f.path.includes(settings.includeDirPath))
+			list = list.filter(f => f.path.includes(settings.includePathName))
 		}
 	}
-
-	if (settings.includeDirName) {
-		if (settings.includeDirNameIsRegex) {
-			list = list.filter(f => f.name.match(settings.includeDirName))
+	
+	if (settings.includeDirName){
+		const includeDirNameRegExp = new RegExp(settings.includeDirName);
+		if (includeDirNameRegExp){
+			list = list.filter(f => f.name.match(includeDirNameRegExp))
 		} else {
 			list = list.filter(f => f.name.includes(settings.includeDirName))
 		}
 	}
 
-	if (settings.excludeDirPath) {
-		if (settings.excludeDirPathIsRegex) {
-			list = list.filter(f => !f.path.match(settings.excludeDirPath))
+	if (settings.excludePathName){
+		const excludePathNameRegExp = new RegExp(settings.excludePathName);
+		if (excludePathNameRegExp){
+			list = list.filter(f => !f.path.match(excludePathNameRegExp))
 		} else {
-			list = list.filter(f => !f.path.includes(settings.excludeDirPath))
+			list = list.filter(f => !f.path.includes(settings.excludePathName))
 		}
 	}
-
-	if (settings.excludeDirName) {
-		if (settings.excludeDirNameIsRegex) {
-			list = list.filter(f => !f.name.match(settings.excludeDirName))
+	
+	if (settings.excludeDirName){
+		const excludeDirNameRegExp = new RegExp(settings.excludeDirName);
+		if (excludeDirNameRegExp){
+			list = list.filter(f => !f.name.match(excludeDirNameRegExp))
 		} else {
 			list = list.filter(f => !f.name.includes(settings.excludeDirName))
 		}

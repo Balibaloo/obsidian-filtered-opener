@@ -1,48 +1,37 @@
 import { App, Notice, PluginSettingTab, Setting, TFolder, TextComponent } from "obsidian";
 import FnOPlugin from "./main";
+import { DirFilterSet, FileFilterSet } from "src";
 
 export interface SettingsFNO {
-	pickerIndex: number;
-  includePath: string;
-  includePathIsRegex: boolean;
-  includeFileName: string;
-  includeFileNameIsRegex: boolean;
-  excludePath: string;
-  excludePathIsRegex: boolean;
-  excludeFileName: string;
-  excludeFileNameIsRegex: boolean;
+  pickerIndex: number;
   dirSearchDepth: number;
   dirSearchIncludeRoots: boolean;
-  includeDirPath: string;
-  includeDirPathIsRegex: boolean;
-  includeDirName: string;
-  includeDirNameIsRegex: boolean;
-  excludeDirPath: string;
-  excludeDirPathIsRegex: boolean;
-  excludeDirName: string;
-  excludeDirNameIsRegex: boolean;
+  fileFilterSets: FileFilterSet[];
+  dirFilterSets: DirFilterSet[];
+}
+
+export const DEFAULT_FILE_FILTER_SET: FileFilterSet = {
+  name: "default",
+  excludeFileName: "",
+  excludePathName: "",
+  includeFileName: "",
+  includePathName: "",
+}
+
+export const DEFAULT_FOLDER_FILTER_SET: DirFilterSet = {
+  name: "default",
+  excludeDirName: "",
+  excludePathName: "",
+  includeDirName: "",
+  includePathName: "",
 }
 
 export const DEFAULT_SETTINGS: SettingsFNO = {
-	pickerIndex: 0,
-  includePath: "",
-  includePathIsRegex: false,
-  includeFileName: "",
-  includeFileNameIsRegex: false,
-  excludePath: "",
-  excludePathIsRegex: false,
-  excludeFileName: "",
-  excludeFileNameIsRegex: false,
+  pickerIndex: 0,
   dirSearchDepth: 1,
   dirSearchIncludeRoots: true,
-  includeDirPath: "",
-  includeDirPathIsRegex: false,
-  includeDirName: "",
-  includeDirNameIsRegex: false,
-  excludeDirPath: "",
-  excludeDirPathIsRegex: false,
-  excludeDirName: "",
-  excludeDirNameIsRegex: false,
+  fileFilterSets: [DEFAULT_FILE_FILTER_SET],
+  dirFilterSets: [],
 }
 
 export class FNOSettingTab extends PluginSettingTab {
