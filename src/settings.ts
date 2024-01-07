@@ -180,12 +180,13 @@ export function createSettingsNoteFilterSets(
   filterSets.forEach((filterSet, i) => {
     createNoteFilterSetInputs(containerEl, filterSet, "", true, true, async set => {
       if (!set) {
-        filterSets.splice(i,1);
+        filterSets.splice(i, 1);
+        await saveFilterSets(filterSets)
+        refreshDisplay();
       } else {
         filterSets[i] = set;
+        await saveFilterSets(filterSets)
       }
-      await saveFilterSets(filterSets)
-      refreshDisplay();
     }, refreshDisplay)
   })
 
