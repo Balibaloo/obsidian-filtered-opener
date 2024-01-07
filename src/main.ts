@@ -201,9 +201,26 @@ export default class FnOPlugin extends Plugin {
 	}
 }
 
+function getRegexIfValid(str:string): null | RegExp {
+		const regexPattern = /^\/(.*)\/([gimuy]*)$/;
+		const match = str.match(regexPattern);
+	
+		if (!match) {
+			return null;
+		}
+	
+		const [, pattern, flags] = match;
+	
+		try {
+			return new RegExp(pattern, flags);
+		} catch(e) {
+			return null;
+		}
+	}
+
 function filterNoteList(settings:NoteFilterSet, list:TFile[]):TFile[]{
 	if (settings.includePathName){
-		const includePathNameRegExp = new RegExp(settings.includePathName);
+		const includePathNameRegExp = getRegexIfValid(settings.includePathName);
 		if (includePathNameRegExp){
 			list = list.filter(f => f.path.match(includePathNameRegExp))
 		} else {
@@ -212,7 +229,8 @@ function filterNoteList(settings:NoteFilterSet, list:TFile[]):TFile[]{
 	}
 	
 	if (settings.includeNoteName){
-		const includeNoteNameRegExp = new RegExp(settings.includeNoteName);
+		const includeNoteNameRegExp = getRegexIfValid(settings.includeNoteName);
+		console.log(settings.includeNoteName, includeNoteNameRegExp)
 		if (includeNoteNameRegExp){
 			list = list.filter(f => f.name.match(includeNoteNameRegExp))
 		} else {
@@ -221,7 +239,7 @@ function filterNoteList(settings:NoteFilterSet, list:TFile[]):TFile[]{
 	}
 
 	if (settings.excludePathName){
-		const excludePathNameRegExp = new RegExp(settings.excludePathName);
+		const excludePathNameRegExp = getRegexIfValid(settings.excludePathName);
 		if (excludePathNameRegExp){
 			list = list.filter(f => !f.path.match(excludePathNameRegExp))
 		} else {
@@ -230,7 +248,7 @@ function filterNoteList(settings:NoteFilterSet, list:TFile[]):TFile[]{
 	}
 	
 	if (settings.excludeNoteName){
-		const excludeNoteNameRegExp = new RegExp(settings.excludeNoteName);
+		const excludeNoteNameRegExp = getRegexIfValid(settings.excludeNoteName);
 		if (excludeNoteNameRegExp){
 			list = list.filter(f => !f.name.match(settings.excludeNoteName))
 		} else {
@@ -243,7 +261,7 @@ function filterNoteList(settings:NoteFilterSet, list:TFile[]):TFile[]{
 
 function filterDirList(settings: DirFilterSet, list: TFolder[]): TFolder[] {
 	if (settings.includePathName){
-		const includePathNameRegExp = new RegExp(settings.includePathName);
+		const includePathNameRegExp = getRegexIfValid(settings.includePathName);
 		if (includePathNameRegExp){
 			list = list.filter(f => f.path.match(includePathNameRegExp))
 		} else {
@@ -252,7 +270,7 @@ function filterDirList(settings: DirFilterSet, list: TFolder[]): TFolder[] {
 	}
 	
 	if (settings.includeDirName){
-		const includeDirNameRegExp = new RegExp(settings.includeDirName);
+		const includeDirNameRegExp = getRegexIfValid(settings.includeDirName);
 		if (includeDirNameRegExp){
 			list = list.filter(f => f.name.match(includeDirNameRegExp))
 		} else {
@@ -261,7 +279,7 @@ function filterDirList(settings: DirFilterSet, list: TFolder[]): TFolder[] {
 	}
 
 	if (settings.excludePathName){
-		const excludePathNameRegExp = new RegExp(settings.excludePathName);
+		const excludePathNameRegExp = getRegexIfValid(settings.excludePathName);
 		if (excludePathNameRegExp){
 			list = list.filter(f => !f.path.match(excludePathNameRegExp))
 		} else {
@@ -270,7 +288,7 @@ function filterDirList(settings: DirFilterSet, list: TFolder[]): TFolder[] {
 	}
 	
 	if (settings.excludeDirName){
-		const excludeDirNameRegExp = new RegExp(settings.excludeDirName);
+		const excludeDirNameRegExp = getRegexIfValid(settings.excludeDirName);
 		if (excludeDirNameRegExp){
 			list = list.filter(f => !f.name.match(excludeDirNameRegExp))
 		} else {
