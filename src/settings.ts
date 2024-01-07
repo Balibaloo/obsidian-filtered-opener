@@ -1,21 +1,21 @@
 import { App, Notice, PluginSettingTab, Setting, TFolder, TextComponent } from "obsidian";
 import FnOPlugin from "./main";
-import { DirFilterSet, FileFilterSet } from "src";
+import { DirFilterSet, NoteFilterSet } from "src";
 import {BoolInputPrompt, GenericInputPrompt} from "./UI"
 
 export interface SettingsFNO {
   pickerIndex: number;
   dirSearchDepth: number;
   dirSearchIncludeRoots: boolean;
-  fileFilterSets: FileFilterSet[];
+  noteFilterSets: NoteFilterSet[];
   dirFilterSets: DirFilterSet[];
 }
 
-export const DEFAULT_FILE_FILTER_SET: FileFilterSet = {
+export const DEFAULT_NOTE_FILTER_SET: NoteFilterSet = {
   name: "default",
-  excludeFileName: "",
+  excludeNoteName: "",
   excludePathName: "",
-  includeFileName: "",
+  includeNoteName: "",
   includePathName: "",
 }
 
@@ -31,7 +31,7 @@ export const DEFAULT_SETTINGS: SettingsFNO = {
   pickerIndex: 0,
   dirSearchDepth: 1,
   dirSearchIncludeRoots: true,
-  fileFilterSets: [DEFAULT_FILE_FILTER_SET],
+  noteFilterSets: [DEFAULT_NOTE_FILTER_SET],
   dirFilterSets: [],
 }
 
@@ -77,8 +77,8 @@ export class FNOSettingTab extends PluginSettingTab {
       .setHeading()
       .setDesc(`Add, rename and delete filter sets here`)
     
-    createSettingsFileFilterSets(containerEl, this.plugin.settings.fileFilterSets, async sets => {
-      this.plugin.settings.fileFilterSets = sets;
+    createSettingsNoteFilterSets(containerEl, this.plugin.settings.noteFilterSets, async sets => {
+      this.plugin.settings.noteFilterSets = sets;
       await this.plugin.saveSettings();
     }, () => {
       this.hide();
@@ -171,14 +171,14 @@ if (deletable){
 }
 
 
-export function createSettingsFileFilterSets(
+export function createSettingsNoteFilterSets(
   containerEl: HTMLElement,
-  filterSets: FileFilterSet[],
-  saveFilterSets: (sets: FileFilterSet[]) => Promise<void> | void,
+  filterSets: NoteFilterSet[],
+  saveFilterSets: (sets: NoteFilterSet[]) => Promise<void> | void,
   refreshDisplay: () => void,
 ) {
   filterSets.forEach((filterSet, i) => {
-    createFileFilterSetInputs(containerEl, filterSet, "", true, true, async set => {
+    createNoteFilterSetInputs(containerEl, filterSet, "", true, true, async set => {
       if (!set) {
         filterSets.splice(i,1);
       } else {
@@ -191,21 +191,21 @@ export function createSettingsFileFilterSets(
 
   new Setting(containerEl)
     .addButton(button => {
-      button.setButtonText("Add file filter set");
+      button.setButtonText("Add note filter set");
       button.onClick(async e => {
-        await saveFilterSets([...filterSets, DEFAULT_FILE_FILTER_SET]);
+        await saveFilterSets([...filterSets, DEFAULT_NOTE_FILTER_SET]);
         refreshDisplay();
       })
       })
 }
 
-export function createFileFilterSetInputs(
+export function createNoteFilterSetInputs(
   containerEl: HTMLElement,
-  filterSet: FileFilterSet,
+  filterSet: NoteFilterSet,
   description = "",
   deletable = true,
   renamable = true,
-  saveSet: (set: FileFilterSet|null) => Promise<void> | void,
+  saveSet: (set: NoteFilterSet|null) => Promise<void> | void,
   refreshDisplay: () => void,
 ) {
 
@@ -236,21 +236,21 @@ export function createFileFilterSetInputs(
     })
 
   new Setting(containerEl)
-    .setName("Include FileName")
+    .setName("Include note name")
     .addText(text => {
-      text.setValue(filterSet.includeFileName)
+      text.setValue(filterSet.includeNoteName)
         .onChange(async v => {
-        filterSet.includeFileName = v.trim();
+        filterSet.includeNoteName = v.trim();
         await saveSet(filterSet);
       })
     })
 
   new Setting(containerEl)
-    .setName("Exclude FileName")
+    .setName("Exclude note name")
     .addText(text => {
-      text.setValue(filterSet.excludeFileName)
+      text.setValue(filterSet.excludeNoteName)
         .onChange(async v => {
-          filterSet.excludeFileName = v.trim();
+          filterSet.excludeNoteName = v.trim();
           await saveSet(filterSet);
         })
     })

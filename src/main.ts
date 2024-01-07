@@ -1,7 +1,7 @@
 import { App, FuzzySuggestModal, Notice, Plugin, TFile, TFolder } from 'obsidian';
-import { DEFAULT_FILE_FILTER_SET, DEFAULT_FOLDER_FILTER_SET, DEFAULT_SETTINGS, FNOSettingTab, SettingsFNO, createDirFilterSetInputs, createFileFilterSetInputs, createSettingsDirFilterSets, createSettingsFileFilterSets } from './settings';
+import { DEFAULT_NOTE_FILTER_SET, DEFAULT_FOLDER_FILTER_SET, DEFAULT_SETTINGS, FNOSettingTab, SettingsFNO, createDirFilterSetInputs, createNoteFilterSetInputs, createSettingsDirFilterSets, createSettingsNoteFilterSets } from './settings';
 import { NotePicker, pickers } from "./pickers"
-import { DirFilterSet, FileFilterSet, FilterSet } from 'src';
+import { DirFilterSet, NoteFilterSet, FilterSet } from 'src';
 
 class FilterSetSuggestModal<T extends FilterSet> extends FuzzySuggestModal<T> {
 	constructor(app: App, items: T[], callback: (item: T) => void) {
@@ -38,19 +38,19 @@ export default class FnOPlugin extends Plugin {
 
 	api_getNote: () => Promise<TFile>
 	api_getDir: () => Promise<TFolder>;
-	api_createSettingsFileFilterSets: (
+	api_createSettingsNoteFilterSets: (
 		containerEl: HTMLElement,
-		filterSets: FileFilterSet[],
-		saveFilterSets: (sets: FileFilterSet[]) => Promise<void> | void,
+		filterSets: NoteFilterSet[],
+		saveFilterSets: (sets: NoteFilterSet[]) => Promise<void> | void,
 		refreshDisplay: () => void,
 	) => void;
-	api_createFileFilterSetInputs: (
+	api_createNoteFilterSetInputs: (
 		containerEl: HTMLElement,
-		filterSet: FileFilterSet,
+		filterSet: NoteFilterSet,
 		description: string,
 		deletable: boolean,
 		renamable: boolean,
-		saveSet: (set: FileFilterSet|null) => Promise<void> | void,
+		saveSet: (set: NoteFilterSet|null) => Promise<void> | void,
 		refreshDisplay: () => void,
 	) => void;
 	api_createSettingsDirFilterSets: (
@@ -73,8 +73,8 @@ export default class FnOPlugin extends Plugin {
 		await this.loadSettings();
 		this.api_getNote = this.getNote,
 			this.api_getDir = this.getDir,
-		this.api_createSettingsFileFilterSets = createSettingsFileFilterSets;
-		this.api_createFileFilterSetInputs = createFileFilterSetInputs;
+		this.api_createSettingsNoteFilterSets = createSettingsNoteFilterSets;
+		this.api_createNoteFilterSetInputs = createNoteFilterSetInputs;
 		this.api_createSettingsDirFilterSets = createSettingsDirFilterSets;
 		this.api_createDirFilterSetInputs = createDirFilterSetInputs;
 
@@ -83,17 +83,17 @@ export default class FnOPlugin extends Plugin {
 			id: 'open-filtered-note-picker',
 			name: 'Open Filtered Note Picker',
 			callback: async () => {
-				if (this.settings.fileFilterSets.length == 0){
-					new Notice("Error: no file filter sets defined");
+				if (this.settings.noteFilterSets.length == 0){
+					new Notice("Error: no note filter sets defined");
 					return;
 				}
 
-				const filterSet = this.settings.fileFilterSets.length === 1 
-					? this.settings.fileFilterSets[0] 
-					: await choseFilterSet(this.settings.fileFilterSets)
+				const noteFilterSet = this.settings.noteFilterSets.length === 1 
+					? this.settings.noteFilterSets[0] 
+					: await choseFilterSet(this.settings.noteFilterSets)
 
-				const file = await this.getNote(filterSet);
-				this.app.workspace.getLeaf(true).openFile(file);
+				const note = await this.getNote(noteFilterSet);
+				this.app.workspace.getLeaf(true).openFile(note);
 			},
 		});
 
@@ -123,25 +123,25 @@ export default class FnOPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	public getNote(fileFilterSet:FileFilterSet = DEFAULT_FILE_FILTER_SET): Promise<TFile> {
+	public getNote(noteFilterSet:NoteFilterSet = DEFAULT_NOTE_FILTER_SET): Promise<TFile> {
 		return new Promise((resolve, reject) => {
-			const filteredFiles: TFile[] = filterFileList(fileFilterSet, this.app.vault.getFiles());
+			const filteredNotes: TFile[] = filterNoteList(noteFilterSet, this.app.vault.getFiles());
 
-			const activeFileSiblings = this.app.workspace.getActiveFile()?.parent.children;
-			if (activeFileSiblings && activeFileSiblings[0]) {
-				const activeProjectNotes = filterFileList(fileFilterSet, activeFileSiblings.filter(f => f instanceof TFile) as TFile[]);
+			const activeNoteSiblings = this.app.workspace.getActiveFile()?.parent.children;
+			if (activeNoteSiblings && activeNoteSiblings[0]) {
+				const activeProjectNotes = filterNoteList(noteFilterSet, activeNoteSiblings.filter(f => f instanceof TFile) as TFile[]);
 
 				if (activeProjectNotes[0]){
-					filteredFiles.remove(activeProjectNotes[0]);
-					filteredFiles.unshift(activeProjectNotes[0]);
+					filteredNotes.remove(activeProjectNotes[0]);
+					filteredNotes.unshift(activeProjectNotes[0]);
 				}
 			}
 
-			if (filteredFiles.length === 1){
-				return resolve(filteredFiles[0]);
+			if (filteredNotes.length === 1){
+				return resolve(filteredNotes[0]);
 			}
 
-			this.pickers[this.settings.pickerIndex].pick(this.app, filteredFiles,
+			this.pickers[this.settings.pickerIndex].pick(this.app, filteredNotes,
 				file => resolve(file));
 
 		});
@@ -182,7 +182,7 @@ export default class FnOPlugin extends Plugin {
 	}
 }
 
-function filterFileList(settings:FileFilterSet, list:TFile[]):TFile[]{
+function filterNoteList(settings:NoteFilterSet, list:TFile[]):TFile[]{
 	if (settings.includePathName){
 		const includePathNameRegExp = new RegExp(settings.includePathName);
 		if (includePathNameRegExp){
@@ -192,12 +192,12 @@ function filterFileList(settings:FileFilterSet, list:TFile[]):TFile[]{
 		}
 	}
 	
-	if (settings.includeFileName){
-		const includeFileNameRegExp = new RegExp(settings.includeFileName);
-		if (includeFileNameRegExp){
-			list = list.filter(f => f.name.match(includeFileNameRegExp))
+	if (settings.includeNoteName){
+		const includeNoteNameRegExp = new RegExp(settings.includeNoteName);
+		if (includeNoteNameRegExp){
+			list = list.filter(f => f.name.match(includeNoteNameRegExp))
 		} else {
-			list = list.filter(f => f.name.includes(settings.includeFileName))
+			list = list.filter(f => f.name.includes(settings.includeNoteName))
 		}
 	}
 
@@ -210,12 +210,12 @@ function filterFileList(settings:FileFilterSet, list:TFile[]):TFile[]{
 		}
 	}
 	
-	if (settings.excludeFileName){
-		const excludeFileNameRegExp = new RegExp(settings.excludeFileName);
-		if (excludeFileNameRegExp){
-			list = list.filter(f => !f.name.match(settings.excludeFileName))
+	if (settings.excludeNoteName){
+		const excludeNoteNameRegExp = new RegExp(settings.excludeNoteName);
+		if (excludeNoteNameRegExp){
+			list = list.filter(f => !f.name.match(settings.excludeNoteName))
 		} else {
-			list = list.filter(f => !f.name.includes(settings.excludeFileName))
+			list = list.filter(f => !f.name.includes(settings.excludeNoteName))
 		}
 	}
 

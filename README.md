@@ -4,7 +4,7 @@ This plugin is a note opener with customizable filters.
 ## Filtering Notes
 You can filter notes based on:
 - path (include/exclude)
-- file name (include/exclude)
+- note name (include/exclude)
 
 (Regex functionality WIP)
 
