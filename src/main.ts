@@ -123,8 +123,18 @@ export default class FnOPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	public getNote(noteFilterSet:NoteFilterSet = DEFAULT_NOTE_FILTER_SET): Promise<TFile> {
+	public getNote(noteFilterSet: string | NoteFilterSet = DEFAULT_NOTE_FILTER_SET): Promise<TFile> {
 		return new Promise((resolve, reject) => {
+
+			if (typeof noteFilterSet === "string") {
+				const noteFilterSetOfName = this.settings.noteFilterSets.find(set => set.name === noteFilterSet);
+				if (!noteFilterSetOfName) {
+					new Notice(`Error: Note Filter Set "${noteFilterSet}" does not exist`);
+					return reject(null);
+				}
+				noteFilterSet = noteFilterSetOfName;
+			}
+
 			const filteredNotes: TFile[] = filterNoteList(noteFilterSet, this.app.vault.getFiles());
 
 			const activeNoteSiblings = this.app.workspace.getActiveFile()?.parent.children;
@@ -148,8 +158,17 @@ export default class FnOPlugin extends Plugin {
 	}
 
 	public getDir(rootDir="/", depth=this.settings.dirSearchDepth, includeRoots=false, 
-		dirFilterSet:DirFilterSet = DEFAULT_FOLDER_FILTER_SET): Promise<TFolder> {
+		dirFilterSet: string | DirFilterSet = DEFAULT_FOLDER_FILTER_SET): Promise<TFolder> {
 		return new Promise((resolve, reject) => {
+
+			if (typeof dirFilterSet === "string") {
+				const dirFilterSetOfName = this.settings.dirFilterSets.find(set => set.name === dirFilterSet);
+				if (!dirFilterSetOfName) {
+					new Notice(`Error: Folder Filter Set "${dirFilterSet}" does not exist`);
+					return reject(null);
+				}
+				dirFilterSet = dirFilterSetOfName;
+			}
 
 			// Get list of folders at a depth
 			let dirs: TFolder[] = [];
