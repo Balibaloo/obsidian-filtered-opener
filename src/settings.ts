@@ -32,7 +32,7 @@ export const DEFAULT_SETTINGS: SettingsFNO = {
   dirSearchDepth: 1,
   dirSearchIncludeRoots: true,
   noteFilterSets: [DEFAULT_NOTE_FILTER_SET],
-  dirFilterSets: [],
+  dirFilterSets: [DEFAULT_FOLDER_FILTER_SET],
 }
 
 export class FNOSettingTab extends PluginSettingTab {
