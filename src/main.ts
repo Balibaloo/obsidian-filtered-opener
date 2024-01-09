@@ -184,8 +184,9 @@ export default class FnOPlugin extends Plugin {
 			}
 
 			const rootFolderInstance = this.app.vault.getAbstractFileByPath(rootFolder)
-			if (!(rootFolderInstance instanceof TFolder))
-				return;
+			if (!(rootFolderInstance instanceof TFolder)){
+				throw new Error(`Root folder ${rootFolder} does not exist`);
+			}
 
 			appendFoldersStartingFrom(rootFolderInstance, 0);
 
