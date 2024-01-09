@@ -1,14 +1,14 @@
 import { App, Notice, PluginSettingTab, Setting, TFolder, TextComponent } from "obsidian";
 import FnOPlugin from "./main";
-import { DirFilterSet, NoteFilterSet } from "src";
+import { FolderFilterSet, NoteFilterSet } from "src";
 import {BoolInputPrompt, GenericInputPrompt} from "./UI"
 
 export interface SettingsFNO {
   pickerIndex: number;
-  dirSearchDepth: number;
-  dirSearchIncludeRoots: boolean;
+  folderSearchDepth: number;
+  folderSearchIncludeRoots: boolean;
   noteFilterSets: NoteFilterSet[];
-  dirFilterSets: DirFilterSet[];
+  folderFilterSets: FolderFilterSet[];
 }
 
 export const DEFAULT_NOTE_FILTER_SET: NoteFilterSet = {
@@ -19,20 +19,20 @@ export const DEFAULT_NOTE_FILTER_SET: NoteFilterSet = {
   includePathName: "",
 }
 
-export const DEFAULT_FOLDER_FILTER_SET: DirFilterSet = {
+export const DEFAULT_FOLDER_FILTER_SET: FolderFilterSet = {
   name: "default",
-  excludeDirName: "",
+  excludeFolderName: "",
   excludePathName: "",
-  includeDirName: "",
+  includeFolderName: "",
   includePathName: "",
 }
 
 export const DEFAULT_SETTINGS: SettingsFNO = {
   pickerIndex: 0,
-  dirSearchDepth: 1,
-  dirSearchIncludeRoots: true,
+  folderSearchDepth: 1,
+  folderSearchIncludeRoots: true,
   noteFilterSets: [DEFAULT_NOTE_FILTER_SET],
-  dirFilterSets: [DEFAULT_FOLDER_FILTER_SET],
+  folderFilterSets: [DEFAULT_FOLDER_FILTER_SET],
 }
 
 export class FNOSettingTab extends PluginSettingTab {
@@ -93,7 +93,7 @@ export class FNOSettingTab extends PluginSettingTab {
       .setName("Folder picking")
       .setDesc("The depth of folders to search through and if folders at previous depths should be shown")
       .addText(text => {
-        text.setValue(this.plugin.settings.dirSearchDepth.toString())
+        text.setValue(this.plugin.settings.folderSearchDepth.toString())
         text.setPlaceholder("depth")
         text.onChange(async v => {
           const depth = parseInt(v);
@@ -102,15 +102,15 @@ export class FNOSettingTab extends PluginSettingTab {
             return;
           }
 
-          this.plugin.settings.dirSearchDepth = depth;
+          this.plugin.settings.folderSearchDepth = depth;
           await this.plugin.saveSettings();
           new Notice("Saved");
         })
       }).addToggle(toggle => {
         toggle.setTooltip("Include folders at previous depths")
-        toggle.setValue(this.plugin.settings.dirSearchIncludeRoots)
+        toggle.setValue(this.plugin.settings.folderSearchIncludeRoots)
         toggle.onChange(async v => {
-          this.plugin.settings.dirSearchIncludeRoots = v;
+          this.plugin.settings.folderSearchIncludeRoots = v;
           await this.plugin.saveSettings();
         })
       })
@@ -119,8 +119,8 @@ export class FNOSettingTab extends PluginSettingTab {
       .setName("Folder filter sets")
       .setHeading()
       .setDesc(`Add, rename and delete filter sets here`)
-    createSettingsDirFilterSets(containerEl, this.plugin.settings.dirFilterSets, async sets => {
-      this.plugin.settings.dirFilterSets = sets;
+    createSettingsFolderFilterSets(containerEl, this.plugin.settings.folderFilterSets, async sets => {
+      this.plugin.settings.folderFilterSets = sets;
       await this.plugin.saveSettings();
     }, () => {
       this.hide();
@@ -257,14 +257,14 @@ export function createNoteFilterSetInputs(
     })
 }
 
-export function createSettingsDirFilterSets(
+export function createSettingsFolderFilterSets(
   containerEl: HTMLElement,
-  filterSets: DirFilterSet[],
-  saveFilterSets: (sets: DirFilterSet[]) => Promise<void> | void,
+  filterSets: FolderFilterSet[],
+  saveFilterSets: (sets: FolderFilterSet[]) => Promise<void> | void,
   refreshDisplay: () => void,
 ) {
   filterSets.forEach((filterSet, i) => {
-    createDirFilterSetInputs(containerEl, filterSet, "", true, true, async set => {
+    createFolderFilterSetInputs(containerEl, filterSet, "", true, true, async set => {
       if (!set) {
         filterSets.splice(i, 1);
         await saveFilterSets(filterSets)
@@ -286,13 +286,13 @@ export function createSettingsDirFilterSets(
       })
 }
 
-export function createDirFilterSetInputs(
+export function createFolderFilterSetInputs(
   containerEl: HTMLElement,
-  filterSet: DirFilterSet,
+  filterSet: FolderFilterSet,
   description = "",
   deletable = true,
   renamable = true,
-  saveSet: (set: DirFilterSet|null) => Promise<void> | void,
+  saveSet: (set: FolderFilterSet|null) => Promise<void> | void,
   refreshDisplay: () => void,
 ) {
 
@@ -305,9 +305,9 @@ export function createDirFilterSetInputs(
   new Setting(containerEl)
     .setName("Include Folder Name")
     .addText(text => {
-      text.setValue(filterSet.includeDirName)
+      text.setValue(filterSet.includeFolderName)
         .onChange(async v => {
-        filterSet.includeDirName = v.trim();
+        filterSet.includeFolderName = v.trim();
         await saveSet(filterSet);
       })
     })
@@ -315,9 +315,9 @@ export function createDirFilterSetInputs(
   new Setting(containerEl)
     .setName("Exclude Folder Name")
     .addText(text => {
-      text.setValue(filterSet.excludeDirName)
+      text.setValue(filterSet.excludeFolderName)
         .onChange(async v => {
-        filterSet.excludeDirName = v.trim();
+        filterSet.excludeFolderName = v.trim();
         await saveSet(filterSet);
       })
     })

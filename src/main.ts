@@ -1,7 +1,7 @@
 import { App, FuzzySuggestModal, Notice, Plugin, TFile, TFolder } from 'obsidian';
-import { DEFAULT_NOTE_FILTER_SET, DEFAULT_FOLDER_FILTER_SET, DEFAULT_SETTINGS, FNOSettingTab, SettingsFNO, createDirFilterSetInputs, createNoteFilterSetInputs, createSettingsDirFilterSets, createSettingsNoteFilterSets } from './settings';
+import { DEFAULT_NOTE_FILTER_SET, DEFAULT_FOLDER_FILTER_SET, DEFAULT_SETTINGS, FNOSettingTab, SettingsFNO, createFolderFilterSetInputs, createNoteFilterSetInputs, createSettingsFolderFilterSets, createSettingsNoteFilterSets } from './settings';
 import { NotePicker, pickers } from "./pickers"
-import { DirFilterSet, NoteFilterSet, FilterSet } from 'src';
+import { FolderFilterSet, NoteFilterSet, FilterSet } from 'src';
 
 class FilterSetSuggestModal<T extends FilterSet> extends FuzzySuggestModal<T> {
 	constructor(app: App, items: T[], callback: (item: T) => void) {
@@ -37,7 +37,7 @@ export default class FnOPlugin extends Plugin {
 	pickers: NotePicker[] = pickers;
 
 	api_getNote: () => Promise<TFile>
-	api_getDir: () => Promise<TFolder>;
+	api_getFolder: () => Promise<TFolder>;
 	api_createSettingsNoteFilterSets: (
 		containerEl: HTMLElement,
 		filterSets: NoteFilterSet[],
@@ -53,30 +53,30 @@ export default class FnOPlugin extends Plugin {
 		saveSet: (set: NoteFilterSet|null) => Promise<void> | void,
 		refreshDisplay: () => void,
 	) => void;
-	api_createSettingsDirFilterSets: (
+	api_createSettingsFolderFilterSets: (
 		containerEl: HTMLElement,
-		filterSets: DirFilterSet[],
-		saveFilterSets: (sets: DirFilterSet[]) => Promise<void> | void,
+		filterSets: FolderFilterSet[],
+		saveFilterSets: (sets: FolderFilterSet[]) => Promise<void> | void,
 		refreshDisplay: () => void,
 	) => void;
-	api_createDirFilterSetInputs: (
+	api_createFolderFilterSetInputs: (
 		containerEl: HTMLElement,
-		filterSet: DirFilterSet,
+		filterSet: FolderFilterSet,
 		description: string,
 		deletable: boolean,
 		renamable: boolean,
-		saveSet: (set: DirFilterSet|null) => Promise<void> | void,
+		saveSet: (set: FolderFilterSet|null) => Promise<void> | void,
 		refreshDisplay: () => void,
 	) => void;
 
 	async onload() {
 		await this.loadSettings();
 		this.api_getNote = this.getNote,
-			this.api_getDir = this.getDir,
+			this.api_getFolder = this.getFolder,
 		this.api_createSettingsNoteFilterSets = createSettingsNoteFilterSets;
 		this.api_createNoteFilterSetInputs = createNoteFilterSetInputs;
-		this.api_createSettingsDirFilterSets = createSettingsDirFilterSets;
-		this.api_createDirFilterSetInputs = createDirFilterSetInputs;
+		this.api_createSettingsFolderFilterSets = createSettingsFolderFilterSets;
+		this.api_createFolderFilterSetInputs = createFolderFilterSetInputs;
 
 		// add a command to trigger the project note opener
 		this.addCommand({
@@ -99,11 +99,11 @@ export default class FnOPlugin extends Plugin {
 
 		// add a command to trigger the project note opener
 		this.addCommand({
-			id: 'pick-dir',
-			name: 'Pick Dir',
+			id: 'pick-folder',
+			name: 'Pick Folder',
 			callback: async () => {
-				const dir = await this.getDir();
-				console.log(dir);
+				const folder = await this.getFolder();
+				console.log(folder);
 			},
 		});
 
@@ -157,46 +157,46 @@ export default class FnOPlugin extends Plugin {
 		});
 	}
 
-	public getDir(rootDir="/", depth=this.settings.dirSearchDepth, includeRoots=false, 
-		dirFilterSet: string | DirFilterSet = DEFAULT_FOLDER_FILTER_SET): Promise<TFolder> {
+	public getFolder(rootFolder="/", depth=this.settings.folderSearchDepth, includeRoots=false, 
+		folderFilterSet: string | FolderFilterSet = DEFAULT_FOLDER_FILTER_SET): Promise<TFolder> {
 		return new Promise((resolve, reject) => {
 
-			if (typeof dirFilterSet === "string") {
-				const dirFilterSetOfName = this.settings.dirFilterSets.find(set => set.name === dirFilterSet);
-				if (!dirFilterSetOfName) {
-					new Notice(`Error: Folder Filter Set "${dirFilterSet}" does not exist`);
+			if (typeof folderFilterSet === "string") {
+				const folderFilterSetOfName = this.settings.folderFilterSets.find(set => set.name === folderFilterSet);
+				if (!folderFilterSetOfName) {
+					new Notice(`Error: Folder Filter Set "${folderFilterSet}" does not exist`);
 					return reject(null);
 				}
-				dirFilterSet = dirFilterSetOfName;
+				folderFilterSet = folderFilterSetOfName;
 			}
 
 			// Get list of folders at a depth
-			let dirs: TFolder[] = [];
-			function appendDirsStartingFrom(directory: TFolder, currentDepth: number) {
+			let folders: TFolder[] = [];
+			function appendFoldersStartingFrom(folder: TFolder, currentDepth: number) {
 				if (includeRoots || currentDepth === depth)
-					dirs.push(directory);
+					folders.push(folder);
 
 				// continue traverse if not leaf
 				if (currentDepth <= depth) {
-					(directory.children.filter(f => f instanceof TFolder) as TFolder[])
-						.flatMap(child => appendDirsStartingFrom(child, currentDepth + 1));
+					(folder.children.filter(f => f instanceof TFolder) as TFolder[])
+						.flatMap(child => appendFoldersStartingFrom(child, currentDepth + 1));
 				}
 			}
 
-			const rootDirInstance = this.app.vault.getAbstractFileByPath(rootDir)
-			if (!(rootDirInstance instanceof TFolder))
+			const rootFolderInstance = this.app.vault.getAbstractFileByPath(rootFolder)
+			if (!(rootFolderInstance instanceof TFolder))
 				return;
 
-			appendDirsStartingFrom(rootDirInstance, 0);
+			appendFoldersStartingFrom(rootFolderInstance, 0);
 
-			const filteredDirs = filterDirList(dirFilterSet, dirs);
+			const filteredFolders = filterFolderList(folderFilterSet, folders);
 
-			if (filteredDirs.length === 1) {
-				return resolve(filteredDirs[0]);
+			if (filteredFolders.length === 1) {
+				return resolve(filteredFolders[0]);
 			}
 
 			this.pickers[this.settings.pickerIndex]
-				.pick(this.app, filteredDirs, dir => resolve(dir));
+				.pick(this.app, filteredFolders, folder => resolve(folder));
 		})
 	}
 }
@@ -259,7 +259,7 @@ function filterNoteList(settings:NoteFilterSet, list:TFile[]):TFile[]{
 	return list;
 }
 
-function filterDirList(settings: DirFilterSet, list: TFolder[]): TFolder[] {
+function filterFolderList(settings: FolderFilterSet, list: TFolder[]): TFolder[] {
 	if (settings.includePathName){
 		const includePathNameRegExp = getRegexIfValid(settings.includePathName);
 		if (includePathNameRegExp){
@@ -269,12 +269,12 @@ function filterDirList(settings: DirFilterSet, list: TFolder[]): TFolder[] {
 		}
 	}
 	
-	if (settings.includeDirName){
-		const includeDirNameRegExp = getRegexIfValid(settings.includeDirName);
-		if (includeDirNameRegExp){
-			list = list.filter(f => f.name.match(includeDirNameRegExp))
+	if (settings.includeFolderName){
+		const includeFolderNameRegExp = getRegexIfValid(settings.includeFolderName);
+		if (includeFolderNameRegExp){
+			list = list.filter(f => f.name.match(includeFolderNameRegExp))
 		} else {
-			list = list.filter(f => f.name.includes(settings.includeDirName))
+			list = list.filter(f => f.name.includes(settings.includeFolderName))
 		}
 	}
 
@@ -287,12 +287,12 @@ function filterDirList(settings: DirFilterSet, list: TFolder[]): TFolder[] {
 		}
 	}
 	
-	if (settings.excludeDirName){
-		const excludeDirNameRegExp = getRegexIfValid(settings.excludeDirName);
-		if (excludeDirNameRegExp){
-			list = list.filter(f => !f.name.match(excludeDirNameRegExp))
+	if (settings.excludeFolderName){
+		const excludeFolderNameRegExp = getRegexIfValid(settings.excludeFolderName);
+		if (excludeFolderNameRegExp){
+			list = list.filter(f => !f.name.match(excludeFolderNameRegExp))
 		} else {
-			list = list.filter(f => !f.name.includes(settings.excludeDirName))
+			list = list.filter(f => !f.name.includes(settings.excludeFolderName))
 		}
 	}
 

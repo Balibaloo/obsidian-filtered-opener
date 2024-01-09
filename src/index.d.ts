@@ -9,9 +9,9 @@ export type NoteFilterSet = FilterSet & {
   excludePathName: string;
 }
 
-export type DirFilterSet = FilterSet & {
-  includeDirName: string;
-  excludeDirName: string;
+export type FolderFilterSet = FilterSet & {
+  includeFolderName: string;
+  excludeFolderName: string;
   includePathName: string;
   excludePathName: string;
 }
