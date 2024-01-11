@@ -80,8 +80,8 @@ export default class FnOPlugin extends Plugin {
 
 		// add a command to trigger the project note opener
 		this.addCommand({
-			id: 'open-filtered-note-picker',
-			name: 'Open Filtered Note Picker',
+			id: 'pick-note',
+			name: 'Pick Note',
 			callback: async () => {
 				if (this.settings.noteFilterSets.length == 0){
 					new Notice("Error: no note filter sets defined");
