@@ -9,7 +9,7 @@ export type NotePicker = {
 
 const flatPicker: NotePicker = {
 	name: "flat",
-	description: "Display all project notes in the root project folder as \'pathToProjectFolder/projectFolderName\'",
+	description: `Flattens the list of notes. Shows notes as "first_different_folder_name/note_name`,
 	pick: <T extends TFile | TFolder>(app: App, notes: T[], callback: (file: T) => void): void => {
 		if (notes.length === 0) return;
 		if (notes.length === 1) return callback(notes[0]);
@@ -65,7 +65,7 @@ class FlatSuggestModal extends FuzzySuggestModal<TFile | TFolder> {
 
 const recursivePicker: NotePicker = {
 	name: "recursive",
-	description: "Chose a top level folder in the root project folder and then between any subfolders (if necessary)",
+	description: "Chose a folder and then between any subfolders (if required)",
 	pick: <T extends TFile | TFolder>(app: App, notes: T[], callback: (file: T) => void): void => {
 		if (notes.length === 0) return;
 		if (notes.length === 1) return callback(notes[0]);
