@@ -13,18 +13,24 @@ export default class GenericInputPrompt extends Modal {
 	private inputComponent: TextComponent;
 	private input: string;
 	private readonly placeholder: string;
+	private readonly required: boolean;
+	private validator: ((text:string, notify:boolean) => boolean) | undefined;
 
 	public static Prompt(
 		app: App,
 		header: string,
 		placeholder?: string,
-		value?: string
+		value?: string,
+		required?: boolean,
+    validator?: (text:string, notify:boolean) => boolean,
 	): Promise<string> {
 		const newPromptModal = new GenericInputPrompt(
 			app,
 			header,
 			placeholder,
-			value
+			value,
+			required,
+      validator,
 		);
 		return newPromptModal.waitForClose;
 	}
@@ -33,11 +39,16 @@ export default class GenericInputPrompt extends Modal {
 		app: App,
 		private header: string,
 		placeholder?: string,
-		value?: string
+		value?: string,
+		required?: boolean,
+    validator?: (text:string, notify:boolean) => boolean,
 	) {
 		super(app);
+		this.header = header;
 		this.placeholder = placeholder ?? "";
 		this.input = value ?? "";
+		this.required = required ?? false;
+    this.validator = validator;
 
 		this.waitForClose = new Promise<string>((resolve, reject) => {
 			this.resolvePromise = resolve;
@@ -52,6 +63,10 @@ export default class GenericInputPrompt extends Modal {
 		// this.containerEl.addClass("quickAddModal", "qaInputPrompt");
 		this.contentEl.empty();
 		this.titleEl.textContent = this.header;
+
+		if (this.required){
+			this.titleEl.addClass("requiredInputHeader");
+		}
 
 		const mainContentContainer: HTMLDivElement = this.contentEl.createDiv();
 		this.inputComponent = this.createInputField(
@@ -70,14 +85,28 @@ export default class GenericInputPrompt extends Modal {
 		const textComponent = new TextComponent(container);
 
 		textComponent.inputEl.style.width = "100%";
-		textComponent
-			.setPlaceholder(placeholder ?? "")
-			.setValue(value ?? "")
-			.onChange((value) => (this.input = value))
+		textComponent.setPlaceholder(placeholder ?? "")
+			.setValue( (value || "").toString() )
+			.onChange((value) => {
+				this.input = value
+				this.updateInputValidation(textComponent, value);
+			})
 			.inputEl.addEventListener("keydown", this.submitEnterCallback);
-
+		
+    this.updateInputValidation(textComponent, (value || ""));
+		
 		return textComponent;
 	}
+
+  protected updateInputValidation(textComponent:TextComponent, value:string){
+    if (this.validator){
+      if (this.validator(value, false)){
+        textComponent.inputEl.removeClass("requiredInput");
+      } else {
+        textComponent.inputEl.addClass("requiredInput");
+      }
+    }
+  }
 
 	private createButton(
 		container: HTMLElement,
@@ -122,6 +151,15 @@ export default class GenericInputPrompt extends Modal {
 	};
 
 	private submit() {
+    if (this.validator && !this.validator(this.input, true)){
+			if (this.required)
+				return;
+			else {
+				this.input = "";
+				// if invalid and not required, submit empty string
+			}
+		}
+
 		this.didSubmit = true;
 
 		this.close();

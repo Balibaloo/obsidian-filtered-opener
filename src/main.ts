@@ -50,6 +50,7 @@ export default class FnOPlugin extends Plugin {
 		description: string,
 		deletable: boolean,
 		renamable: boolean,
+		validateSetName: (name: string, notify: boolean) => boolean,
 		saveSet: (set: NoteFilterSet|null) => Promise<void> | void,
 		refreshDisplay: () => void,
 	) => void;
@@ -65,6 +66,7 @@ export default class FnOPlugin extends Plugin {
 		description: string,
 		deletable: boolean,
 		renamable: boolean,
+		validateSetName: (name: string, notify: boolean) => boolean,
 		saveSet: (set: FolderFilterSet|null) => Promise<void> | void,
 		refreshDisplay: () => void,
 	) => void;

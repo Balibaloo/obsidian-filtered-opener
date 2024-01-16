@@ -136,6 +136,7 @@ export function addFilterSetHeader(
   description = "",
   deletable = true,
   renamable = true,
+  validateSetName: (name:string, notify:boolean)=>boolean,
   saveName:(newName:string)=>Promise<void>| void,
   deleteSet:()=>Promise<void>| void,
   ){
@@ -146,13 +147,13 @@ const filterSetHeader = new Setting(containerEl)
 if (renamable){
   filterSetHeader.addExtraButton(btn => {
     btn.setIcon("pencil").onClick(async () => {
-      const newName = await GenericInputPrompt.Prompt(this.app, "Edit Filter Set Name", undefined, header);
+      const newName = await GenericInputPrompt.Prompt(this.app, "New Filter Set Name", undefined, header, true, validateSetName);
+
       const newNameFormatted = newName.trim()
-      if (!newNameFormatted){
+      if (!newNameFormatted) {
         new Notice("Error: Filter Set Name cannot be blank");
         return;
       }
-      // TODO unique filter name check
       
       await saveName(newNameFormatted);
     })
@@ -178,7 +179,21 @@ export function createSettingsNoteFilterSets(
   refreshDisplay: () => void,
 ) {
   filterSets.forEach((filterSet, i) => {
-    createNoteFilterSetInputs(containerEl, filterSet, "", true, true, async set => {
+    createNoteFilterSetInputs(containerEl, filterSet, "", true, true, (text, notify) => {
+      const nameNotChanged = text === filterSet.name;
+      if (nameNotChanged) return true;
+
+      const nameUnique = !filterSets.some(set => set.name === text.trim());
+      const nameHasCharacters = text.trim().length > 0;
+
+      if (!nameUnique && notify)
+        new Notice("Error: Filter Set Name must be unique");
+
+      if (!nameHasCharacters && notify)
+        new Notice("Error: Filter Set Name cannot be blank");
+
+      return nameUnique && nameHasCharacters;
+    }, async set => {
       if (!set) {
         filterSets.splice(i, 1);
         await saveFilterSets(filterSets)
@@ -194,7 +209,30 @@ export function createSettingsNoteFilterSets(
     .addButton(button => {
       button.setButtonText("Add note filter set");
       button.onClick(async e => {
-        await saveFilterSets([...filterSets, DEFAULT_NOTE_FILTER_SET]);
+        const newSetName = await GenericInputPrompt.Prompt(this.app, "New Filter Set Name", undefined, undefined, true, (text, notify) => {
+          const nameUnique = !filterSets.some(set => set.name === text.trim());
+          if (!nameUnique && notify)
+          new Notice("Error: Filter Set Name must be unique");
+          
+          const nameHasCharacters = text.trim().length > 0;
+          if (!nameHasCharacters && notify)
+            new Notice("Error: Filter Set Name cannot be blank");
+
+          return nameUnique && nameHasCharacters;
+        });
+
+        const newNameFormatted = newSetName.trim()
+        if (!newNameFormatted) {
+          new Notice("Error: Filter Set Name cannot be blank");
+          return;
+        }
+
+        const newFilterSet: NoteFilterSet = {
+          ...DEFAULT_NOTE_FILTER_SET,
+          name: newNameFormatted
+        };
+
+        await saveFilterSets([...filterSets, newFilterSet]);
         refreshDisplay();
       })
       })
@@ -206,11 +244,12 @@ export function createNoteFilterSetInputs(
   description = "",
   deletable = true,
   renamable = true,
+  validateSetName: (name:string, notify:boolean)=>boolean,
   saveSet: (set: NoteFilterSet|null) => Promise<void> | void,
   refreshDisplay: () => void,
 ) {
 
-  addFilterSetHeader(containerEl, filterSet.name, description, deletable, renamable, async name => {
+  addFilterSetHeader(containerEl, filterSet.name, description, deletable, renamable, validateSetName, async name => {
     filterSet.name = name;
     await saveSet(filterSet);
     refreshDisplay();
@@ -264,7 +303,17 @@ export function createSettingsFolderFilterSets(
   refreshDisplay: () => void,
 ) {
   filterSets.forEach((filterSet, i) => {
-    createFolderFilterSetInputs(containerEl, filterSet, "", true, true, async set => {
+    createFolderFilterSetInputs(containerEl, filterSet, "", true, true, (text, notify) => {
+      const nameUnique = !filterSets.some(set => set.name === text.trim());
+      if (!nameUnique && notify)
+        new Notice("Error: Filter Set Name must be unique");
+        
+      const nameHasCharacters = text.trim().length > 0;
+      if (!nameHasCharacters && notify)
+        new Notice("Error: Filter Set Name cannot be blank");
+
+      return nameUnique && nameHasCharacters;
+    }, async set => {
       if (!set) {
         filterSets.splice(i, 1);
         await saveFilterSets(filterSets)
@@ -292,11 +341,12 @@ export function createFolderFilterSetInputs(
   description = "",
   deletable = true,
   renamable = true,
+  validateSetName: (name:string, notify:boolean)=>boolean,
   saveSet: (set: FolderFilterSet|null) => Promise<void> | void,
   refreshDisplay: () => void,
 ) {
 
-  addFilterSetHeader(containerEl, filterSet.name, description, deletable, renamable, async name => {
+  addFilterSetHeader(containerEl, filterSet.name, description, deletable, renamable, validateSetName, async name => {
     filterSet.name = name;
     await saveSet(filterSet);
     refreshDisplay();
