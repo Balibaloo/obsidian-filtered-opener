@@ -136,6 +136,10 @@ export default class FnOPlugin extends Plugin {
 			}
 
 			const filteredNotes: TFile[] = filterNoteList(noteFilterSet, this.app.vault.getFiles());
+			if (filteredNotes.length === 0) {
+				new Notice(`Error: No notes match filter set "${noteFilterSet.name}"`);
+				return reject(`No notes match filter set "${noteFilterSet.name}"`);
+			}
 
 			const activeNoteSiblings = this.app.workspace.getActiveFile()?.parent.children;
 			if (activeNoteSiblings && activeNoteSiblings[0]) {
@@ -191,6 +195,11 @@ export default class FnOPlugin extends Plugin {
 			appendFoldersStartingFrom(rootFolderInstance, 0);
 
 			const filteredFolders = filterFolderList(folderFilterSet, folders);
+
+			if (filteredFolders.length === 0) {
+				new Notice(`Error: No folders match filter set "${folderFilterSet.name}"`);
+				return reject(`No folders match filter set "${folderFilterSet.name}"`);
+			}
 
 			if (filteredFolders.length === 1) {
 				return resolve(filteredFolders[0]);
