@@ -142,19 +142,16 @@ export default class FnOPlugin extends Plugin {
 				new Notice(`Error: No notes match filter set "${noteFilterSet.name}"`);
 				return reject(`No notes match filter set "${noteFilterSet.name}"`);
 			}
-
-			const activeNoteSiblings = this.app.workspace.getActiveFile()?.parent.children;
-			if (activeNoteSiblings && activeNoteSiblings[0]) {
-				const activeProjectNotes = filterNoteList(noteFilterSet, activeNoteSiblings.filter(f => f instanceof TFile) as TFile[]);
-
-				if (activeProjectNotes[0]){
-					filteredNotes.remove(activeProjectNotes[0]);
-					filteredNotes.unshift(activeProjectNotes[0]);
-				}
-			}
-
+			
 			if (filteredNotes.length === 1){
 				return resolve(filteredNotes[0]);
+			}
+
+			const nearestNotesInSet = getNearestNotesInSet(this.app.workspace.getActiveFile()?.parent || null, noteFilterSet);
+			
+			for (let note of nearestNotesInSet){
+				filteredNotes.remove(note);
+				filteredNotes.unshift(note);
 			}
 
 			this.pickers[this.settings.pickerIndex].pick(this.app, filteredNotes,
@@ -212,6 +209,24 @@ export default class FnOPlugin extends Plugin {
 		})
 	}
 }
+
+function getNearestNotesInSet(parent:TFolder|null, noteFilterSet:NoteFilterSet ): TFile[] {
+	if (!parent) return [];
+
+	const siblings = parent.children;
+	if (siblings && siblings[0]) {
+		const filteredSiblings = filterNoteList(noteFilterSet, siblings.filter(f => f instanceof TFile) as TFile[]);
+		if (filteredSiblings.length > 0) {
+			filteredSiblings.reverse();
+			return filteredSiblings;
+		}
+
+		return getNearestNotesInSet(parent.parent, noteFilterSet);
+	}
+
+	return [];
+}
+
 
 function getRegexIfValid(str:string): null | RegExp {
 		const regexPattern = /^\/(.*)\/([gimuy]*)$/;
