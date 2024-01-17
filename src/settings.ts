@@ -329,7 +329,26 @@ export function createSettingsFolderFilterSets(
     .addButton(button => {
       button.setButtonText("Add folder filter set");
       button.onClick(async e => {
-        await saveFilterSets([...filterSets, DEFAULT_FOLDER_FILTER_SET]);
+        const newSetName = await GenericInputPrompt.Prompt(this.app, "New Filter Set Name", undefined, undefined, true, (text, notify) => {
+          const nameHasCharacters = text.trim().length > 0;
+          if (!nameHasCharacters && notify)
+            new Notice("Error: Filter Set Name cannot be blank");
+
+          return nameHasCharacters;
+        });
+
+        const newNameFormatted = newSetName.trim()
+        if (!newNameFormatted) {
+          new Notice("Error: Filter Set Name cannot be blank");
+          return;
+        }
+
+        const newFilterSet: FolderFilterSet = {
+          ...DEFAULT_FOLDER_FILTER_SET,
+          name: newNameFormatted
+        };
+
+        await saveFilterSets([...filterSets, newFilterSet]);
         refreshDisplay();
       })
       })
