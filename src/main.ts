@@ -109,6 +109,8 @@ export default class FnOPlugin extends Plugin {
 			},
 		});
 
+		this.createFilterSetCommands();
+
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new FNOSettingTab(this.app, this));
 	}
@@ -208,6 +210,28 @@ export default class FnOPlugin extends Plugin {
 				.pick(this.app, filteredFolders, folder => resolve(folder));
 		})
 	}
+
+	createFilterSetCommands() {
+		for (let noteSet of this.settings.noteFilterSets){
+			const normalizedSetName = noteSet.name.toLowerCase()
+          .replaceAll(/[^\w\s]/g,"").replace(/\s+/g,' ').replace(/\s/g,'-');
+
+			this.addCommand({
+				id: `open-${normalizedSetName}-note`,
+				name: `Open ${noteSet.name} Note`,
+				callback: async () => {
+					const note = await this.getNote(noteSet);
+					this.openNote(note);
+				}
+			})
+		}
+	}
+
+	openNote(note:TFile){
+		if (!note) return;
+		this.app.workspace.getLeaf(true).openFile(note);
+	}
+
 }
 
 function getNearestNotesInSet(parent:TFolder|null, noteFilterSet:NoteFilterSet ): TFile[] {

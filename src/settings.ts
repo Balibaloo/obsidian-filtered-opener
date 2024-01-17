@@ -82,6 +82,7 @@ export class FNOSettingTab extends PluginSettingTab {
       await this.plugin.saveSettings();
     }, () => {
       this.hide();
+      this.plugin.createFilterSetCommands();
       this.display();
     })
 
