@@ -2,10 +2,10 @@
 	"author": "Roman Kubiv",
 	"minAppVersion": "0.15.0",
 	"name": "Picker",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"authorUrl": "https://roman.kubiv.com",
 	"fundingUrl": "https://www.buymeacoffee.com/romankubiv",
-	"description": "User defined Filter Sets to open notes",
+	"description": "Sets of notes defined by filters to open notes",
 	"id": "picker",
 	"isDesktopOnly": false
 }
