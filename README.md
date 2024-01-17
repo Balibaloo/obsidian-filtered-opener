@@ -5,12 +5,12 @@ Is this [Obsidian](https://obsidian.md) plugin for you? [You should use this plu
 
 To open a note, use the "Pick Note" command.
 
-<img src="readme_cover.gif" width=800px>
+<img src="assets/cover.gif" width=800px>
 
 
 If you have more than one Note Filter Set, you will be prompted to chose one.
 
-<img src="readme_new_set.gif" width=800px>
+<img src="assets/new_set.gif" width=800px>
 
 ## Filter Sets
 Filter sets can be created, deleted and configured in the settings of this plugin.
@@ -39,40 +39,33 @@ The main difference is the way they display items located in different folders.
 
 ### Flat picker
 The flat picker "flattens" the folders of all the notes.
-If a Note Filter Set matches 2 items in the following folders:
-- root_folder/
-	- category_A/
-		- subfolder/
-			- note one.md
-	- category_B/
-		- subfolder/
-			- note two.md
+If a Note Filter Set matches items that contain the "🏗" emoji:
+
+<img src="assets/folder_structure.png" width=300px>
+
+
 The flat picker will show these notes like so:
-- category_A/note one.md
-- category_B/note two.md
+
+<img src="assets/flat-picker.png" width=700px>
+
 
 It will show the first folder that is different and the note name for each note.
 If a Filter Set only has one item, that item will be selected automatically.
 
 ### Recursive Picker
 The recursive picker steps through one level of folders at a time.
-If a Note Filter Set matches 2 items in the following folders:
-- root_folder/
-	- category_A/
-		- subfolder/
-			- note one.md
-			- note two.md
-	- category_B/
-		- subfolder/
-			- note three.md
-			- note four.md
-The recursive picker will first show the folders like so:
-- category_A
-- category_B
+If a Note Filter Set matches items that contain the "✅" emoji:
 
-If you selecting category_B it will recurse and show the notes inside the folder:
-- note three
-- note four
+<img src="assets/folder_structure.png" width=300px>
+
+The recursive picker will first show the folders like so:
+
+<img src="assets/recursive-1.png" width=700px>
+
+If you select "👔 Work Category" it will recurse and show the notes inside the folder:
+
+<img src="assets/recursive-2.png" width=700px>
+
 
 If any folders have only one item inside, that item is selected automatically.
 
