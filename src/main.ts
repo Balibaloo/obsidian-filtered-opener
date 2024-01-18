@@ -281,7 +281,6 @@ function filterNoteList(settings:NoteFilterSet, list:TFile[]):TFile[]{
 	
 	if (settings.includeNoteName){
 		const includeNoteNameRegExp = getRegexIfValid(settings.includeNoteName);
-		console.log(settings.includeNoteName, includeNoteNameRegExp)
 		if (includeNoteNameRegExp){
 			list = list.filter(f => f.name.match(includeNoteNameRegExp))
 		} else {
