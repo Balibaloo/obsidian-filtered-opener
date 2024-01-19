@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-picker",
-	"version": "1.1.1",
+	"version": "1.1.2",
 	"description": "Sets of notes defined by filters to open notes",
 	"main": "main.js",
 	"scripts": {
