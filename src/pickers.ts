@@ -45,7 +45,7 @@ class FlatSuggestModal extends FuzzySuggestModal<TFile | TFolder> {
 	}
 
 	getItemText(item: TFile | TFolder): string {
-		let splitPath = item.path.split(/[\\/]/g);
+		const splitPath = item.path.split(/[\\/]/g);
 
 		// make sure context folder not the same as folder
 		const contextFolderIndex = this.firstDifferentFolderIndex === splitPath.length - 1 ?

@@ -61,7 +61,7 @@ export class FNOSettingTab extends PluginSettingTab {
 
 				// change selected picker on change
 				dropdown.onChange(async (pickerIndexString) => {
-					let chosenPickerIndex: number = parseInt(pickerIndexString)
+					const chosenPickerIndex: number = parseInt(pickerIndexString)
 					console.log("New picker mode", this.plugin.pickers[chosenPickerIndex].name);
           settings.pickerIndex = chosenPickerIndex;
           await this.plugin.saveSettings();
