@@ -100,3 +100,9 @@ It exposes functions to:
 - create setting interface elements to input and maintain Filter Sets
 
 The core of the API was developed for the [Local Template Configuration Plugin](https://github.com/Balibaloo/obsidian-local-template-configuration) which was then extended to include create setting elements.
+
+# Attributions
+This repository uses code from the following projects:
+- https://github.com/chhoumann/quickadd
+
+Code credits are also placed in comments above code.
