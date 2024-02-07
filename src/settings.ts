@@ -47,10 +47,6 @@ export class FNOSettingTab extends PluginSettingTab {
     const { containerEl, plugin: { settings } } = this;
 		containerEl.empty();
 
-    new Setting(containerEl)
-      .setName("Picker settings")
-      .setHeading()
-
 		new Setting(containerEl)
 			.setName("Picker mode")
 			.setDesc("Picker types: " + this.plugin.pickers.map(p => `${p.name}: ${p.description}`).join(", "))
@@ -71,6 +67,10 @@ export class FNOSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
 				})
 			});
+
+    new Setting(containerEl)
+      .setName("Note settings")
+      .setHeading()
 
     new Setting(containerEl)
       .setName("Note filter sets")
