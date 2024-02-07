@@ -69,7 +69,7 @@ export class FNOSettingTab extends PluginSettingTab {
 			});
 
     new Setting(containerEl)
-      .setName("Note settings")
+      .setName("Notes")
       .setHeading()
 
     new Setting(containerEl)
@@ -87,7 +87,7 @@ export class FNOSettingTab extends PluginSettingTab {
     })
 
     new Setting(containerEl)
-      .setName("Folder settings")
+      .setName("Folders")
       .setHeading()
 
     new Setting(containerEl)
