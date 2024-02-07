@@ -3,7 +3,7 @@ Sets of notes defined by filters to open notes.
 
 Is this [Obsidian](https://obsidian.md) plugin for you? [You should use this plugin if](#you-should-use-this-plugin-if)
 
-To open a note, use the "Pick Note" command.
+To open a note, use the "Pick note" command.
 
 <img src="assets/cover.gif" width=800px>
 

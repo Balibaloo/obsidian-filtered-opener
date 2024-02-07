@@ -48,7 +48,7 @@ export class FNOSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
     new Setting(containerEl)
-      .setName("Picker Settings")
+      .setName("Picker settings")
       .setHeading()
 
 		new Setting(containerEl)
@@ -87,7 +87,7 @@ export class FNOSettingTab extends PluginSettingTab {
     })
 
     new Setting(containerEl)
-      .setName("Folder Settings")
+      .setName("Folder settings")
       .setHeading()
 
     new Setting(containerEl)
@@ -148,7 +148,7 @@ const filterSetHeader = new Setting(containerEl)
 if (renamable){
   filterSetHeader.addExtraButton(btn => {
     btn.setIcon("pencil").onClick(async () => {
-      const newName = await GenericInputPrompt.Prompt(this.app, "New Filter Set Name", undefined, header, true, validateSetName);
+      const newName = await GenericInputPrompt.Prompt(this.app, "New filter set name", undefined, header, true, validateSetName);
 
       const newNameFormatted = newName.trim()
       if (!newNameFormatted) {
@@ -210,7 +210,7 @@ export function createSettingsNoteFilterSets(
     .addButton(button => {
       button.setButtonText("Add note filter set");
       button.onClick(async e => {
-        const newSetName = await GenericInputPrompt.Prompt(this.app, "New Filter Set Name", undefined, undefined, true, (text, notify) => {
+        const newSetName = await GenericInputPrompt.Prompt(this.app, "New filter set name", undefined, undefined, true, (text, notify) => {
           const nameUnique = !filterSets.some(set => set.name === text.trim());
           if (!nameUnique && notify)
           new Notice("Error: Filter Set Name must be unique");
@@ -257,7 +257,7 @@ export function createNoteFilterSetInputs(
   }, () => {saveSet(null)})
 
   new Setting(containerEl)
-    .setName("Include PathName")
+    .setName("Include path name")
     .addText(text => {
       text.setValue(filterSet.includePathName)
         .onChange(async v => {
@@ -267,7 +267,7 @@ export function createNoteFilterSetInputs(
     })
 
   new Setting(containerEl)
-    .setName("Exclude PathName")
+    .setName("Exclude path name")
     .addText(text => {
       text.setValue(filterSet.excludePathName)
         .onChange(async v => {
@@ -330,7 +330,7 @@ export function createSettingsFolderFilterSets(
     .addButton(button => {
       button.setButtonText("Add folder filter set");
       button.onClick(async e => {
-        const newSetName = await GenericInputPrompt.Prompt(this.app, "New Filter Set Name", undefined, undefined, true, (text, notify) => {
+        const newSetName = await GenericInputPrompt.Prompt(this.app, "New filter set name", undefined, undefined, true, (text, notify) => {
           const nameHasCharacters = text.trim().length > 0;
           if (!nameHasCharacters && notify)
             new Notice("Error: Filter Set Name cannot be blank");
@@ -373,7 +373,7 @@ export function createFolderFilterSetInputs(
   }, () => {saveSet(null)})
 
   new Setting(containerEl)
-    .setName("Include Folder Name")
+    .setName("Include folder name")
     .addText(text => {
       text.setValue(filterSet.includeFolderName)
         .onChange(async v => {
@@ -383,7 +383,7 @@ export function createFolderFilterSetInputs(
     })
 
   new Setting(containerEl)
-    .setName("Exclude Folder Name")
+    .setName("Exclude folder name")
     .addText(text => {
       text.setValue(filterSet.excludeFolderName)
         .onChange(async v => {
@@ -393,7 +393,7 @@ export function createFolderFilterSetInputs(
     })
 
   new Setting(containerEl)
-    .setName("Include PathName")
+    .setName("Include path name")
     .addText(text => {
       text.setValue(filterSet.includePathName)
         .onChange(async v => {
@@ -403,7 +403,7 @@ export function createFolderFilterSetInputs(
     })
 
   new Setting(containerEl)
-    .setName("Exclude PathName")
+    .setName("Exclude path name")
     .addText(text => {
       text.setValue(filterSet.excludePathName)
         .onChange(async v => {
