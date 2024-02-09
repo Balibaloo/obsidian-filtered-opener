@@ -183,8 +183,10 @@ export default class FnOPlugin extends Plugin {
 
 				// continue traverse if not leaf
 				if (currentDepth <= depth) {
-					(folder.children.filter(f => f instanceof TFolder) as TFolder[])
-						.flatMap(child => appendFoldersStartingFrom(child, currentDepth + 1));
+					folder.children.flatMap(f => f instanceof TFolder 
+						? appendFoldersStartingFrom(f, currentDepth + 1) 
+						: []
+					);
 				}
 			}
 
@@ -239,7 +241,7 @@ function getNearestNotesInSet(parent:TFolder|null, noteFilterSet:NoteFilterSet )
 
 	const siblings = parent.children;
 	if (siblings && siblings[0]) {
-		const filteredSiblings = filterNoteList(noteFilterSet, siblings.filter(f => f instanceof TFile) as TFile[]);
+		const filteredSiblings = filterNoteList(noteFilterSet, siblings.flatMap(f => f instanceof TFile ? [f] : []));
 		if (filteredSiblings.length > 0) {
 			filteredSiblings.reverse();
 			return filteredSiblings;
