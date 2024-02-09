@@ -63,18 +63,14 @@ export default class BoolInputPrompt extends Modal {
 			buttonBarContainer,
 			"Ok",
 			this.submitClickCallback
-		).setCta().buttonEl.style.marginRight = "0";
+		).setCta().buttonEl.classList.add("ok-button");
 		this.createButton(
 			buttonBarContainer,
 			"Cancel",
 			this.cancelClickCallback
 		);
 
-		buttonBarContainer.style.display = "flex";
-		buttonBarContainer.style.flexDirection = "row-reverse";
-		buttonBarContainer.style.justifyContent = "flex-start";
-		buttonBarContainer.style.marginTop = "1rem";
-		buttonBarContainer.style.gap = "0.5rem";
+		buttonBarContainer.classList.add("button-bar");
 	}
 
 	private submitClickCallback = (evt: MouseEvent) => this.submit();
