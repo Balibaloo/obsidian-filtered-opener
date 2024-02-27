@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-filtered-opener",
-	"version": "1.1.5",
+	"version": "1.1.7",
 	"description": "Open notes and folders, chose from sets defined by filters.",
 	"main": "main.js",
 	"scripts": {
