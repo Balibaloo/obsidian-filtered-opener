@@ -2,10 +2,10 @@
 	"author": "Roman Kubiv",
 	"minAppVersion": "0.15.0",
 	"name": "Filtered Opener",
-	"version": "1.1.8",
+	"version": "1.1.9",
 	"authorUrl": "https://roman.kubiv.com",
 	"fundingUrl": "https://www.buymeacoffee.com/romankubiv",
-	"description": "Open notes and folders, chose from sets defined by filters.",
+	"description": "Open notes and folders. Chose from sets defined by filters.",
 	"id": "filtered-opener",
 	"isDesktopOnly": false
 }
