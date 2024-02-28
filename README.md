@@ -82,14 +82,14 @@ This may lead to issues referencing Filter Sets by name in other plugins.
 To fix this try copying and pasting the name of the set to ensure that the characters are identical.
 
 # You should use this plugin if
-- You want to open a note from a sets of notes
-- You want to define a set of notes by their
-	- [x] filename
-	- [x] pathname
+- You want to open notes from a set of notes.
+- You want to define multiple sets of notes.
+- You want to define a set of notes by their:
+	- filename
+	- pathname
 	- [ ] tags
-- You want to define multiple sets of notes
-- You want to use regex to match the above properties
-- You want to use hotkeys different hotkeys to open notes from different sets
+- You want to use regex for matching properties to define sets.
+- You want to open notes from different sets with assigned hotkeys.
 
 
 ## API
