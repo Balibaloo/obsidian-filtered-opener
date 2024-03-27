@@ -162,7 +162,9 @@ export default class FnOPlugin extends Plugin {
 		});
 	}
 
-	public getFolder(rootFolder="/", depth=this.settings.folderSearchDepth, includeRoots=false, 
+	public getFolder(rootFolder="/", 
+		depth=this.settings.folderSearchDepth, 
+		includeParents=this.settings.folderSearchIncludeParents, 
 		folderFilterSet: string | FolderFilterSet = DEFAULT_FOLDER_FILTER_SET): Promise<TFolder> {
 		return new Promise((resolve, reject) => {
 
@@ -178,7 +180,7 @@ export default class FnOPlugin extends Plugin {
 			// Get list of folders at a depth
 			let folders: TFolder[] = [];
 			function appendFoldersStartingFrom(folder: TFolder, currentDepth: number) {
-				if (includeRoots || currentDepth === depth)
+				if (includeParents || currentDepth === depth)
 					folders.push(folder);
 
 				// continue traverse if not leaf

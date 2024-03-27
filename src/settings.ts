@@ -6,7 +6,7 @@ import {BoolInputPrompt, GenericInputPrompt} from "./UI"
 export interface SettingsFNO {
   pickerIndex: number;
   folderSearchDepth: number;
-  folderSearchIncludeRoots: boolean;
+  folderSearchIncludeParents: boolean;
   noteFilterSets: NoteFilterSet[];
   folderFilterSets: FolderFilterSet[];
 }
@@ -32,7 +32,7 @@ export const DEFAULT_FOLDER_FILTER_SET: FolderFilterSet = {
 export const DEFAULT_SETTINGS: SettingsFNO = {
   pickerIndex: 0,
   folderSearchDepth: 1,
-  folderSearchIncludeRoots: true,
+  folderSearchIncludeParents: true,
   noteFilterSets: [DEFAULT_NOTE_FILTER_SET],
   folderFilterSets: [DEFAULT_FOLDER_FILTER_SET],
 }
@@ -94,7 +94,7 @@ export class FNOSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Folder picking")
-      .setDesc("The depth of folders to search through and if folders at previous depths should be shown")
+      .setDesc("The depth of folders to search through and if parent folders should be shown")
       .addText(text => {
         text.setValue(this.plugin.settings.folderSearchDepth.toString())
         text.setPlaceholder("depth")
@@ -110,10 +110,10 @@ export class FNOSettingTab extends PluginSettingTab {
           new Notice("Saved");
         })
       }).addToggle(toggle => {
-        toggle.setTooltip("Include folders at previous depths")
-        toggle.setValue(this.plugin.settings.folderSearchIncludeRoots)
+        toggle.setTooltip("Include folders above the target depth")
+        toggle.setValue(this.plugin.settings.folderSearchIncludeParents)
         toggle.onChange(async v => {
-          this.plugin.settings.folderSearchIncludeRoots = v;
+          this.plugin.settings.folderSearchIncludeParents = v;
           await this.plugin.saveSettings();
         })
       })
