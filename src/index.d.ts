@@ -7,6 +7,8 @@ export type FilterSet = {
 export type NoteFilterSet = FilterSet & {
   includeNoteName: string;
   excludeNoteName: string;
+  includeTags: string;
+  excludeTags: string;
 }
 
 export type FolderFilterSet = FilterSet & {

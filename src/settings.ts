@@ -17,6 +17,8 @@ export const DEFAULT_NOTE_FILTER_SET: NoteFilterSet = {
   excludePathName: "",
   includeNoteName: "",
   includePathName: "",
+  includeTags: "",
+  excludeTags: "",
 }
 
 export const DEFAULT_FOLDER_FILTER_SET: FolderFilterSet = {
@@ -292,6 +294,28 @@ export function createNoteFilterSetInputs(
       text.setValue(filterSet.excludeNoteName)
         .onChange(async v => {
           filterSet.excludeNoteName = v.trim();
+          await saveSet(filterSet);
+        })
+    })
+
+  new Setting(containerEl)
+    .setName("Include tags")
+    .addText(text => {
+      text.setPlaceholder("#Tag1, #Tag2, #Tag3")
+        .setValue( filterSet.includeTags )
+        .onChange( async v => {
+          filterSet.includeTags = v.trim()
+          await saveSet(filterSet);
+        })
+    })
+  
+  new Setting(containerEl)
+    .setName("Exclude tags")
+    .addText(text => {
+      text.setPlaceholder("#Tag1, #Tag2, #Tag3")
+        .setValue( filterSet.excludeTags )
+        .onChange( async v => {
+          filterSet.excludeTags = v.trim()
           await saveSet(filterSet);
         })
     })

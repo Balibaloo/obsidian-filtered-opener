@@ -1,4 +1,4 @@
-import { App, FuzzySuggestModal, Notice, Plugin, TFile, TFolder } from 'obsidian';
+import { App, FuzzySuggestModal, Notice, Plugin, TFile, TFolder, getAllTags } from 'obsidian';
 import { DEFAULT_NOTE_FILTER_SET, DEFAULT_FOLDER_FILTER_SET, DEFAULT_SETTINGS, FNOSettingTab, SettingsFNO, createFolderFilterSetInputs, createNoteFilterSetInputs, createSettingsFolderFilterSets, createSettingsNoteFilterSets } from './settings';
 import { NotePicker, pickers } from "./pickers"
 import { FolderFilterSet, NoteFilterSet, FilterSet } from 'src';
@@ -305,6 +305,54 @@ function filterNoteList(settings:NoteFilterSet, list:TFile[]):TFile[]{
 			list = list.filter(f => !f.name.match(settings.excludeNoteName))
 		} else {
 			list = list.filter(f => !f.name.includes(settings.excludeNoteName))
+		}
+	}
+
+	if (settings.includeTags){
+		const includeTagRegExp = getRegexIfValid(settings.includeTags);
+		if (includeTagRegExp){
+			list = list.filter(f => {
+				const fCache = app.metadataCache.getFileCache(f);
+				if (!fCache) return false;
+
+				return getAllTags(fCache)?.some( t => t.match(includeTagRegExp) );
+			})
+		} else {
+			const includeTags = settings.includeTags.split(/\s*,\s*/);
+			
+			list = list.filter(f => {
+				const fCache = app.metadataCache.getFileCache(f);
+				if (!fCache) return false;
+				
+				const fTags = getAllTags(fCache);
+				if (!fTags) return false;
+
+				return includeTags.every(it => fTags.some(t => t.startsWith(it)));
+			})
+		}
+	}
+
+	if (settings.excludeTags){
+		const excludeTagRegExp = getRegexIfValid(settings.excludeTags);
+		if (excludeTagRegExp){
+			list = list.filter(f => {
+				const fCache = app.metadataCache.getFileCache(f);
+				if (!fCache) return true;
+
+				return !getAllTags(fCache)?.some( t => t.match(excludeTagRegExp) );
+			})
+		} else {
+			const excludeTags = settings.excludeTags.split(/\s*,\s*/);
+			
+			list = list.filter(f => {
+				const fCache = app.metadataCache.getFileCache(f);
+				if (!fCache) return true;
+				
+				const fTags = getAllTags(fCache);
+				if (!fTags) return true;
+
+				return !excludeTags.some( et => fTags.some( t => t.startsWith(et)) );
+			})
 		}
 	}
 

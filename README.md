@@ -17,7 +17,7 @@ Filter sets can be created, deleted and configured in the settings of this plugi
 
 All filters support using [special characters](#special-characters) and regular expressions.
 ### regular expressions
-All inputs support regex.
+All filters support regex matching. (including Tags!)
 Any input that matches this format (`/^\/(.*)\/([gimuy]*)$/`) will be treated as regex.
 
 ### Open Note commands
@@ -87,7 +87,7 @@ To fix this try copying and pasting the name of the set to ensure that the chara
 - You want to define a set of notes by their:
 	- filename
 	- pathname
-	- [ ] tags
+	- tags
 - You want to use regex for matching properties to define sets.
 - You want to open notes from different sets with assigned hotkeys.
 
