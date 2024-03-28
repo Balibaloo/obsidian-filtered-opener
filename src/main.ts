@@ -104,7 +104,16 @@ export default class FnOPlugin extends Plugin {
 			id: 'pick-folder',
 			name: 'Pick folder',
 			callback: async () => {
-				const folder = await this.getFolder();
+				if (this.settings.folderFilterSets.length == 0){
+					new Notice("Error: no folder filter sets defined");
+					return;
+				}
+
+				const folderFilterSet = this.settings.folderFilterSets.length === 1 
+					? this.settings.folderFilterSets[0] 
+					: await choseFilterSet(this.settings.folderFilterSets)
+
+				const folder = await this.getFolder(undefined, undefined, undefined, folderFilterSet);
 				console.log(folder);
 			},
 		});
