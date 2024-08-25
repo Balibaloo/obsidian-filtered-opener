@@ -113,7 +113,7 @@ export default class FnOPlugin extends Plugin {
 					? this.settings.folderFilterSets[0] 
 					: await choseFilterSet(this.settings.folderFilterSets)
 
-				const folder = await this.getFolder(undefined, undefined, undefined, folderFilterSet);
+				const folder = await this.getFolder(folderFilterSet);
 				console.log(folder);
 			},
 		});
@@ -171,10 +171,7 @@ export default class FnOPlugin extends Plugin {
 		});
 	}
 
-	public getFolder(rootFolder="/", 
-		depth=this.settings.folderSearchDepth, 
-		includeParents=this.settings.folderSearchIncludeParents, 
-		folderFilterSet: string | FolderFilterSet = DEFAULT_FOLDER_FILTER_SET): Promise<TFolder> {
+	public getFolder(folderFilterSet: string | FolderFilterSet = DEFAULT_FOLDER_FILTER_SET): Promise<TFolder> {
 		return new Promise((resolve, reject) => {
 
 			if (typeof folderFilterSet === "string") {
@@ -185,6 +182,8 @@ export default class FnOPlugin extends Plugin {
 				}
 				folderFilterSet = folderFilterSetOfName;
 			}
+
+			const {includeParents, depth, rootFolder} = folderFilterSet;
 
 			// Get list of folders at a depth
 			let folders: TFolder[] = [];

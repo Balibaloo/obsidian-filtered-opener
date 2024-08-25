@@ -5,8 +5,6 @@ import {BoolInputPrompt, GenericInputPrompt} from "./UI"
 
 export interface SettingsFNO {
   pickerIndex: number;
-  folderSearchDepth: number;
-  folderSearchIncludeParents: boolean;
   noteFilterSets: NoteFilterSet[];
   folderFilterSets: FolderFilterSet[];
 }
@@ -23,6 +21,9 @@ export const DEFAULT_NOTE_FILTER_SET: NoteFilterSet = {
 
 export const DEFAULT_FOLDER_FILTER_SET: FolderFilterSet = {
   name: "default",
+  rootFolder: "/",
+  includeParents: false,
+  depth: 1,
   excludeFolderName: "",
   excludePathName: "",
   includeFolderName: "",
@@ -31,8 +32,6 @@ export const DEFAULT_FOLDER_FILTER_SET: FolderFilterSet = {
 
 export const DEFAULT_SETTINGS: SettingsFNO = {
   pickerIndex: 0,
-  folderSearchDepth: 1,
-  folderSearchIncludeParents: true,
   noteFilterSets: [DEFAULT_NOTE_FILTER_SET],
   folderFilterSets: [DEFAULT_FOLDER_FILTER_SET],
 }
@@ -91,32 +90,6 @@ export class FNOSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Folders")
       .setHeading()
-
-    new Setting(containerEl)
-      .setName("Folder picking")
-      .setDesc("The depth of folders to search through and if parent folders should be shown")
-      .addText(text => {
-        text.setValue(this.plugin.settings.folderSearchDepth.toString())
-        text.setPlaceholder("depth")
-        text.onChange(async v => {
-          const depth = parseInt(v);
-          if (!depth) {
-            new Notice("Error: depth must be an number")
-            return;
-          }
-
-          this.plugin.settings.folderSearchDepth = depth;
-          await this.plugin.saveSettings();
-          new Notice("Saved");
-        })
-      }).addToggle(toggle => {
-        toggle.setTooltip("Include folders above the target depth")
-        toggle.setValue(this.plugin.settings.folderSearchIncludeParents)
-        toggle.onChange(async v => {
-          this.plugin.settings.folderSearchIncludeParents = v;
-          await this.plugin.saveSettings();
-        })
-      })
     
     new Setting(containerEl)
       .setName("Folder filter sets")
@@ -397,6 +370,17 @@ export function createFolderFilterSetInputs(
   }, () => {saveSet(null)})
 
   new Setting(containerEl)
+  .setName("Root folder")
+  .addText(text => {
+    text.setPlaceholder("/")
+      .setValue(filterSet.rootFolder)
+      .onChange(async v => {
+        filterSet.rootFolder = v.trim() || "/";
+        await saveSet(filterSet);
+    })
+  })
+
+  new Setting(containerEl)
     .setName("Include folder name")
     .addText(text => {
       text.setValue(filterSet.includeFolderName)
@@ -432,6 +416,31 @@ export function createFolderFilterSetInputs(
       text.setValue(filterSet.excludePathName)
         .onChange(async v => {
         filterSet.excludePathName = v.trim();
+        await saveSet(filterSet);
+      })
+    })
+
+    new Setting(containerEl)
+    .setDesc("The depth of folders to search down to and should folders above the target depth be shown")
+    .addToggle(toggle => {
+      toggle.setTooltip("Include folders above the target depth")
+      toggle.setValue(filterSet.includeParents)
+      toggle.onChange(async v => {
+        filterSet.includeParents = v;
+        await saveSet(filterSet);
+      })
+    })
+    .addText(text => {
+      text.setValue((filterSet.depth || "").toString())
+      text.setPlaceholder("1")
+      text.onChange(async v => {
+        const depth = parseInt(v);
+        if (!depth) {
+          new Notice("Error: depth must be an number")
+          return;
+        }
+
+        filterSet.depth = depth || 1;
         await saveSet(filterSet);
       })
     })

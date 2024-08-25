@@ -12,6 +12,9 @@ export type NoteFilterSet = FilterSet & {
 }
 
 export type FolderFilterSet = FilterSet & {
+  rootFolder: string;
+  depth: number, 
+  includeParents: boolean;
   includeFolderName: string;
   excludeFolderName: string;
 }
