@@ -139,7 +139,10 @@ export default class FnOPlugin extends Plugin {
 	public getNote(noteFilterSet: string | NoteFilterSet = DEFAULT_NOTE_FILTER_SET): Promise<TFile> {
 		return new Promise((resolve, reject) => {
 
-			if (typeof noteFilterSet === "string") {
+			if (noteFilterSet === "")
+				noteFilterSet = DEFAULT_NOTE_FILTER_SET
+
+			else if (typeof noteFilterSet === "string") {
 				const noteFilterSetOfName = this.settings.noteFilterSets.find(set => set.name === noteFilterSet);
 				if (!noteFilterSetOfName) {
 					new Notice(`Error: Note Filter Set "${noteFilterSet}" does not exist`);
@@ -174,7 +177,10 @@ export default class FnOPlugin extends Plugin {
 	public getFolder(folderFilterSet: string | FolderFilterSet = DEFAULT_FOLDER_FILTER_SET): Promise<TFolder> {
 		return new Promise((resolve, reject) => {
 
-			if (typeof folderFilterSet === "string") {
+			if (folderFilterSet === "")
+				folderFilterSet = DEFAULT_FOLDER_FILTER_SET
+			
+			else if (typeof folderFilterSet === "string") {
 				const folderFilterSetOfName = this.settings.folderFilterSets.find(set => set.name === folderFilterSet);
 				if (!folderFilterSetOfName) {
 					new Notice(`Error: Folder Filter Set "${folderFilterSet}" does not exist`);
