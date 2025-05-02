@@ -76,7 +76,7 @@ export default class FnOPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 		this.api_getNote = this.getNote,
-			this.api_getFolder = this.getFolder,
+		this.api_getFolder = this.getFolder,
 		this.api_createSettingsNoteFilterSets = createSettingsNoteFilterSets;
 		this.api_createNoteFilterSetInputs = createNoteFilterSetInputs;
 		this.api_createSettingsFolderFilterSets = createSettingsFolderFilterSets;
