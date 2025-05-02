@@ -70,6 +70,8 @@ export default class FnOPlugin extends Plugin {
 		saveSet: (set: FolderFilterSet|null) => Promise<void> | void,
 		refreshDisplay: () => void,
 	) => void;
+	api_getListOfNoteFilterSets: () => NoteFilterSet[];
+	api_getListOfFolderFilterSets: () => FolderFilterSet[];
 
 	async onload() {
 		await this.loadSettings();
@@ -79,6 +81,8 @@ export default class FnOPlugin extends Plugin {
 		this.api_createNoteFilterSetInputs = createNoteFilterSetInputs;
 		this.api_createSettingsFolderFilterSets = createSettingsFolderFilterSets;
 		this.api_createFolderFilterSetInputs = createFolderFilterSetInputs;
+		this.api_getListOfNoteFilterSets = (() => this.settings.noteFilterSets);
+		this.api_getListOfFolderFilterSets = (() => this.settings.folderFilterSets);
 
 		// add a command to trigger the project note opener
 		this.addCommand({
