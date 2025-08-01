@@ -1,6 +1,6 @@
 import { App, FuzzySuggestModal, Notice, Plugin, TFile, TFolder, getAllTags } from 'obsidian';
 import { DEFAULT_NOTE_FILTER_SET, DEFAULT_FOLDER_FILTER_SET, DEFAULT_SETTINGS, FNOSettingTab, SettingsFNO, createFolderFilterSetInputs, createNoteFilterSetInputs, createSettingsFolderFilterSets, createSettingsNoteFilterSets } from './settings';
-import { NotePicker, pickers } from "./pickers"
+import { NotePicker, PickerName, pickers } from "./pickers"
 import { FolderFilterSet, NoteFilterSet, FilterSet } from 'src';
 
 class FilterSetSuggestModal<T extends FilterSet> extends FuzzySuggestModal<T> {
@@ -140,7 +140,7 @@ export default class FnOPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	public getNote(noteFilterSet: string | NoteFilterSet = DEFAULT_NOTE_FILTER_SET): Promise<TFile> {
+	public getNote(noteFilterSet: string | NoteFilterSet = DEFAULT_NOTE_FILTER_SET, pickerName: PickerName=""): Promise<TFile> {
 		return new Promise((resolve, reject) => {
 			// Get filter set name or default
 			const filterSetName = typeof noteFilterSet === "string" 
@@ -188,13 +188,16 @@ export default class FnOPlugin extends Plugin {
 				filteredNotes.unshift(note);
 			}
 
-			this.pickers[this.settings.pickerIndex].pick(this.app, filteredNotes,
-				file => resolve(file));
+						
+			const selectedPicker = this.pickers.find(picker => picker.name === pickerName)
+				|| this.pickers[this.settings.pickerIndex];
+
+			selectedPicker.pick(this.app, filteredNotes,file => resolve(file));
 
 		});
 	}
 
-	public getFolder(folderFilterSet: string | FolderFilterSet = DEFAULT_FOLDER_FILTER_SET): Promise<TFolder> {
+	public getFolder(folderFilterSet: string | FolderFilterSet = DEFAULT_FOLDER_FILTER_SET, pickerName:PickerName=""): Promise<TFolder> {
 		return new Promise((resolve, reject) => {
 
 			// Get filter set name or default
@@ -261,9 +264,11 @@ export default class FnOPlugin extends Plugin {
 			if (filteredFolders.length === 1) {
 				return resolve(filteredFolders[0]);
 			}
+			
+			const selectedPicker = this.pickers.find(picker => picker.name === pickerName)
+				|| this.pickers[this.settings.pickerIndex];
 
-			this.pickers[this.settings.pickerIndex]
-				.pick(this.app, filteredFolders, folder => resolve(folder));
+			selectedPicker.pick(this.app, filteredFolders, folder => resolve(folder));
 		})
 	}
 

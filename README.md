@@ -96,7 +96,8 @@ To fix this try copying and pasting the name of the set to ensure that the chara
 This plugin has an API that can be used for developing other plugins.
 It exposes functions to:
 - get paths to notes and folders in a Filter Set
-	- Filter Sets are referenced by names
+	- Filter Sets can be referenced by names
+	- specify picker
 - create setting interface elements to input and maintain Filter Sets
 
 The core of the API was developed for the [Local Template Configuration Plugin](https://github.com/Balibaloo/obsidian-local-template-configuration) which was then extended to include create setting elements.
