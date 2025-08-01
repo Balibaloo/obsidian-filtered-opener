@@ -142,30 +142,46 @@ export default class FnOPlugin extends Plugin {
 
 	public getNote(noteFilterSet: string | NoteFilterSet = DEFAULT_NOTE_FILTER_SET): Promise<TFile> {
 		return new Promise((resolve, reject) => {
+			// Get filter set name or default
+			const filterSetName = typeof noteFilterSet === "string" 
+				? noteFilterSet || DEFAULT_NOTE_FILTER_SET.name
+				: noteFilterSet.name || DEFAULT_NOTE_FILTER_SET.name
 
-			if (noteFilterSet === "")
-				noteFilterSet = DEFAULT_NOTE_FILTER_SET
-
-			else if (typeof noteFilterSet === "string") {
-				const noteFilterSetOfName = this.settings.noteFilterSets.find(set => set.name === noteFilterSet);
-				if (!noteFilterSetOfName) {
-					new Notice(`Error: Note Filter Set "${noteFilterSet}" does not exist`);
-					return reject(null);
-				}
-				noteFilterSet = noteFilterSetOfName;
+			// Lookup filter set by name
+			const filterSetList = [ ...this.settings.noteFilterSets, DEFAULT_NOTE_FILTER_SET ];
+			const filterSetFromSettings = Object.assign({}, filterSetList.find(set => set.name === filterSetName) );
+			if ( !filterSetFromSettings ) {
+				new Notice(`Error: Note Filter Set "${filterSetName}" does not exist`);
+				return reject(null);
 			}
+			
+			// Apply values passed alongside filter set name
+			if (typeof noteFilterSet === "object"){
+				let inputFilterSetHasAdditionalProps = false;
 
-			const filteredNotes: TFile[] = filterNoteList(noteFilterSet, this.app.vault.getFiles());
+				for (const key of Object.keys( filterSetFromSettings ) as (keyof NoteFilterSet)[]) {
+					if ( noteFilterSet[ key ] ){
+						filterSetFromSettings[ key ] = noteFilterSet[ key ];
+
+						inputFilterSetHasAdditionalProps = key !== "name";
+					}
+				}
+
+				if (inputFilterSetHasAdditionalProps)
+					filterSetFromSettings.name += "+"
+			}
+			
+			const filteredNotes: TFile[] = filterNoteList(filterSetFromSettings, this.app.vault.getFiles());
 			if (filteredNotes.length === 0) {
-				new Notice(`Error: No notes match filter set "${noteFilterSet.name}"`);
-				return reject(`No notes match filter set "${noteFilterSet.name}"`);
+				new Notice(`Error: No notes match filter set "${filterSetFromSettings.name}"`);
+				return reject(`No notes match filter set "${filterSetFromSettings.name}"`);
 			}
 			
 			if (filteredNotes.length === 1){
 				return resolve(filteredNotes[0]);
 			}
 
-			const nearestNotesInSet = getNearestNotesInSet(this.app.workspace.getActiveFile()?.parent || null, noteFilterSet);
+			const nearestNotesInSet = getNearestNotesInSet(this.app.workspace.getActiveFile()?.parent || null, filterSetFromSettings);
 			
 			for (let note of nearestNotesInSet){
 				filteredNotes.remove(note);
@@ -181,19 +197,37 @@ export default class FnOPlugin extends Plugin {
 	public getFolder(folderFilterSet: string | FolderFilterSet = DEFAULT_FOLDER_FILTER_SET): Promise<TFolder> {
 		return new Promise((resolve, reject) => {
 
-			if (folderFilterSet === "")
-				folderFilterSet = DEFAULT_FOLDER_FILTER_SET
-			
-			else if (typeof folderFilterSet === "string") {
-				const folderFilterSetOfName = this.settings.folderFilterSets.find(set => set.name === folderFilterSet);
-				if (!folderFilterSetOfName) {
-					new Notice(`Error: Folder Filter Set "${folderFilterSet}" does not exist`);
-					return reject(null);
-				}
-				folderFilterSet = folderFilterSetOfName;
+			// Get filter set name or default
+			const filterSetName = typeof folderFilterSet === "string" 
+				? folderFilterSet || DEFAULT_FOLDER_FILTER_SET.name
+				: folderFilterSet.name || DEFAULT_FOLDER_FILTER_SET.name
+
+			// Lookup filter set by name
+			const filterSetList = [ ...this.settings.folderFilterSets, DEFAULT_FOLDER_FILTER_SET ];
+			const filterSetFromSettings = Object.assign({}, filterSetList.find(set => set.name === filterSetName) );
+			if ( !filterSetFromSettings ) {
+				new Notice(`Error: Folder Filter Set "${filterSetName}" does not exist`);
+				return reject(null);
 			}
 
-			const {includeParents, depth, rootFolder} = folderFilterSet;
+			// Apply values passed alongside filter set name
+			if (typeof folderFilterSet === "object"){
+				let inputFilterSetHasAdditionalProps = false;
+
+				for (const key of Object.keys( filterSetFromSettings ) as (keyof FolderFilterSet)[]) {
+					if ( folderFilterSet[ key ] ){
+						(filterSetFromSettings as any)[ key ] = (folderFilterSet as any)[ key ];
+
+						inputFilterSetHasAdditionalProps = key !== "name";
+					}
+				}
+
+				if (inputFilterSetHasAdditionalProps)
+					filterSetFromSettings.name += "+"
+			}
+			
+
+			const {includeParents, depth, rootFolder} = filterSetFromSettings;
 
 			// Get list of folders at a depth
 			let folders: TFolder[] = [];
@@ -217,11 +251,11 @@ export default class FnOPlugin extends Plugin {
 
 			appendFoldersStartingFrom(rootFolderInstance, 0);
 
-			const filteredFolders = filterFolderList(folderFilterSet, folders);
+			const filteredFolders = filterFolderList(filterSetFromSettings, folders);
 
 			if (filteredFolders.length === 0) {
-				new Notice(`Error: No folders match filter set "${folderFilterSet.name}"`);
-				return reject(`No folders match filter set "${folderFilterSet.name}"`);
+				new Notice(`Error: No folders match filter set "${filterSetFromSettings.name}"`);
+				return reject(`No folders match filter set "${filterSetFromSettings.name}"`);
 			}
 
 			if (filteredFolders.length === 1) {
