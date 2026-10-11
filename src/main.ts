@@ -1,5 +1,5 @@
-import { App, FuzzySuggestModal, Notice, Plugin, TFile, TFolder, getAllTags } from 'obsidian';
-import { DEFAULT_NOTE_FILTER_SET, DEFAULT_FOLDER_FILTER_SET, DEFAULT_SETTINGS, FNOSettingTab, SettingsFNO, createFolderFilterSetInputs, createNoteFilterSetInputs, createSettingsFolderFilterSets, createSettingsNoteFilterSets } from './settings';
+import { App, FuzzySuggestModal, Notice, Plugin, PluginManifest, SuggestModal, TFile, TFolder, getAllTags } from 'obsidian';
+import { DEFAULT_NOTE_FILTER_SET, DEFAULT_FOLDER_FILTER_SET, DEFAULT_SETTINGS, FNOSettingTab, SettingsFNO, createFolderFilterSetInputs, createNoteFilterSetInputs, createSettingsFolderFilterSets, createSettingsNoteFilterSets, makeNewFilterSet, validateFilterSetName } from './settings';
 import { NotePicker, PickerName, pickers } from "./pickers"
 import { FolderFilterSet, NoteFilterSet, FilterSet } from 'src';
 
@@ -38,6 +38,8 @@ export default class FnOPlugin extends Plugin {
 
 	api_getNote: () => Promise<TFile>
 	api_getFolder: () => Promise<TFolder>;
+	api_makeNewNoteFilterSet: () => Promise<void | String>;
+	api_makeNewFolderFilterSet: () => Promise<void | String>;
 	api_createSettingsNoteFilterSets: (
 		containerEl: HTMLElement,
 		filterSets: NoteFilterSet[],
@@ -70,6 +72,30 @@ export default class FnOPlugin extends Plugin {
 		saveSet: (set: FolderFilterSet|null) => Promise<void> | void,
 		refreshDisplay: () => void,
 	) => void;
+	api_exposeSettingsNoteFilterSets: (
+		containerEl: HTMLElement,
+		refreshDisplay: () => void,
+	) => void;
+	api_exposeNoteFilterSetInputs: (
+		containerEl: HTMLElement,
+		filterSet: string,
+		description: string,
+		deletable: boolean,
+		renamable: boolean,
+		refreshDisplay: () => void,
+	) => void;
+	api_exposeSettingsFolderFilterSets: (
+		containerEl: HTMLElement,
+		refreshDisplay: () => void,
+	) => void;
+	api_exposeFolderFilterSetInputs: (
+		containerEl: HTMLElement,
+		filterSet: string,
+		description: string,
+		deletable: boolean,
+		renamable: boolean,
+		refreshDisplay: () => void,
+	) => void;
 	api_getListOfNoteFilterSets: () => NoteFilterSet[];
 	api_getListOfFolderFilterSets: () => FolderFilterSet[];
 
@@ -77,10 +103,19 @@ export default class FnOPlugin extends Plugin {
 		await this.loadSettings();
 		this.api_getNote = this.getNote,
 		this.api_getFolder = this.getFolder,
+		this.api_makeNewNoteFilterSet = this.makeNewNoteFilterSet,
+		this.api_makeNewFolderFilterSet = this.makeNewFolderFilterSet,
+		
 		this.api_createSettingsNoteFilterSets = createSettingsNoteFilterSets;
 		this.api_createNoteFilterSetInputs = createNoteFilterSetInputs;
 		this.api_createSettingsFolderFilterSets = createSettingsFolderFilterSets;
 		this.api_createFolderFilterSetInputs = createFolderFilterSetInputs;
+
+		this.api_exposeSettingsNoteFilterSets = this.exposeSettingsNoteFilterSets;
+		this.api_exposeNoteFilterSetInputs = this.exposeNoteFilterSetInputs;
+		this.api_exposeSettingsFolderFilterSets = this.exposeSettingsFolderFilterSets;
+		this.api_exposeFolderFilterSetInputs = this.exposeFolderFilterSetInputs;
+
 		this.api_getListOfNoteFilterSets = (() => this.settings.noteFilterSets);
 		this.api_getListOfFolderFilterSets = (() => this.settings.folderFilterSets);
 
@@ -291,6 +326,127 @@ export default class FnOPlugin extends Plugin {
 	openNote(note:TFile){
 		if (!note) return;
 		this.app.workspace.getLeaf(true).openFile(note);
+	}
+
+	async makeNewNoteFilterSet(){
+		return await makeNewFilterSet(
+			app,
+			DEFAULT_NOTE_FILTER_SET,
+			this.settings.noteFilterSets,
+			async sets => {
+				this.settings.noteFilterSets = sets;
+				await this.saveSettings();
+			});
+		}
+
+	async makeNewFolderFilterSet(){
+		return await makeNewFilterSet(
+			app,
+			DEFAULT_FOLDER_FILTER_SET,
+			this.settings.folderFilterSets,
+			async sets => {
+				this.settings.folderFilterSets = sets;
+				await this.saveSettings();
+			} );	
+		}
+
+	
+	exposeSettingsNoteFilterSets(
+		containerEl: HTMLElement,
+		refreshDisplay: () => void,
+	){
+		createSettingsNoteFilterSets(
+			containerEl,
+			this.settings.noteFilterSets,
+			(sets) => {
+				this.settings.noteFilterSets = sets;
+				this.saveSettings();
+			},
+			refreshDisplay
+		)
+	}
+
+	exposeNoteFilterSetInputs(
+		containerEl: HTMLElement,
+		filterSetName: string,
+		description: string,
+		deletable: boolean,
+		renamable: boolean,
+		refreshDisplay: () => void,
+	){
+		const filterSets = this.settings.noteFilterSets;
+		const filterSetIndex = filterSets.findIndex((s) => s.name === filterSetName);
+		const filterSet = filterSetIndex !== -1 ? filterSets[filterSetIndex] : DEFAULT_NOTE_FILTER_SET;
+
+		createNoteFilterSetInputs(
+			containerEl,
+			filterSet,
+			description,
+			deletable,
+			renamable,
+			(name:string, notify:boolean) => validateFilterSetName(name, filterSetName, this.settings.noteFilterSets, notify),
+			(set) => {
+				if (!set) {
+        filterSets.splice(filterSetIndex, 1);
+        this.settings.noteFilterSets = filterSets;
+				this.saveSettings();
+      } else {
+        filterSets[filterSetIndex] = set;
+        this.settings.noteFilterSets = filterSets;
+				this.saveSettings();
+      }
+			},
+			refreshDisplay,
+		)
+	}
+
+	exposeSettingsFolderFilterSets(
+		containerEl: HTMLElement,
+		refreshDisplay: () => void,
+	){
+		createSettingsFolderFilterSets(
+			containerEl,
+			this.settings.folderFilterSets,
+			(sets) => {
+				this.settings.folderFilterSets = sets;
+				this.saveSettings();
+			},
+			refreshDisplay
+		)
+	}
+
+	exposeFolderFilterSetInputs(
+		containerEl: HTMLElement,
+		filterSetName: string,
+		description: string,
+		deletable: boolean,
+		renamable: boolean,
+		refreshDisplay: () => void,
+	){
+		const filterSets = this.settings.folderFilterSets;
+		const filterSetIndex = filterSets.findIndex((s) => s.name === filterSetName);
+		const filterSet = filterSetIndex !== -1 ? filterSets[filterSetIndex] : DEFAULT_FOLDER_FILTER_SET;
+
+		createFolderFilterSetInputs(
+			containerEl,
+			filterSet,
+			description,
+			deletable,
+			renamable,
+			(name:string, notify:boolean) => validateFilterSetName(name, filterSetName, this.settings.noteFilterSets, notify),
+			(set) => {
+				if (!set) {
+        filterSets.splice(filterSetIndex, 1);
+        this.settings.folderFilterSets = filterSets;
+				this.saveSettings();
+      } else {
+        filterSets[filterSetIndex] = set;
+        this.settings.folderFilterSets = filterSets;
+				this.saveSettings();
+      }
+			},
+			refreshDisplay,
+		)
 	}
 
 }

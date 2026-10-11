@@ -99,6 +99,8 @@ It exposes functions to:
 	- Filter Sets can be referenced by names
 	- specify picker
 - create setting interface elements to input and maintain Filter Sets
+	- create..inputs functions for when you want to store the Filter Sets yourself
+	- expose..inputs functions for when you want this plugin to manage the Filter sets for you.
 
 The core of the API was developed for the [Local Template Configuration Plugin](https://github.com/Balibaloo/obsidian-local-template-configuration) which was then extended to include create setting elements.
 
