@@ -34,7 +34,7 @@ export async function choseFilterSet<T extends FilterSet>(FilterSets:T[]):Promis
 export default class FnOPlugin extends Plugin {
 	settings: SettingsFNO;
 
-	pickers: NotePicker[] = pickers;
+	pickers: NotePicker[] = [...pickers];
 
 	api_getNote: () => Promise<TFile>
 	api_getFolder: () => Promise<TFolder>;
