@@ -113,5 +113,5 @@ class RecurSuggestModal extends FuzzySuggestModal<string> {
 	}
 }
 
-export const pickers:NotePicker[] = [flatPicker, recursivePicker] as const;
+export const pickers:[NotePicker, NotePicker] = [flatPicker, recursivePicker] as const;
 export type PickerName = typeof pickers[number]["name"];
